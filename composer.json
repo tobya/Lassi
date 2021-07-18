@@ -1,0 +1,16 @@
+{
+    "name": "tobya/lassi",
+    "description": "Syncronise Users between websites",
+    "type": "library",
+    "require": {
+        "laravel/laravel": "9999999-dev"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Toby Allen",
+            "email": "toby@toflidium.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
