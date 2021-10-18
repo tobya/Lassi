@@ -22,7 +22,7 @@ class SyncLassi extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Sync with Lassi Server';
 
     /**
      * Create a new command instance.
@@ -43,7 +43,8 @@ class SyncLassi extends Command
     {
 
 
-        SyncClient::sync();
+
+        $this->info(SyncClient::sync());
         return 0;
     }
 
