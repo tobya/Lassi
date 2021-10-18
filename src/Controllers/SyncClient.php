@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Log;
 
 class SyncClient extends BaseController
 {
@@ -25,9 +26,21 @@ class SyncClient extends BaseController
     public static function sync(){
 
                 $client = new Client();
-           $result = $client->request( 'GET',  config('lassi.server').  '/lassi/sync/20211010');
+                $headers = [
+                'Accept'        => 'application/json',
+                'Authorization' => 'Bearer ' . config('lassi.token') ,
+                ];
+
+        try {
+
+        $result = $client->post(config('lassi.server').  '/lassi/sync/20211010',['headers' => $headers]);
+        } catch ( \Exception $e) {
+            return "Error Happened :" . $e->getMessage();
+        }
+
            $json = $result->getBody()->getContents();
-            self::updateusers($json);
+           Log::debug($json);
+          return  self::updateusers($json);
 
     }
 
