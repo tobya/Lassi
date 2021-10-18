@@ -2,9 +2,7 @@
     "name": "tobya/lassi",
     "description": "Syncronise Users between websites",
     "type": "library",
-    "require": {
-        "laravel/laravel": "9999999-dev"
-    },
+
     "license": "MIT",
     "authors": [
         {
@@ -12,5 +10,17 @@
             "email": "toby@toflidium.com"
         }
     ],
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+     "autoload" :{
+        "psr-4": {
+             "Lassi\\" : "src/"
+        }
+    },
+        "extra": {
+        "laravel":{
+            "providers" : [
+                "Lassi\\LassiServiceProvider"
+            ]
+        }
+    }
 }
