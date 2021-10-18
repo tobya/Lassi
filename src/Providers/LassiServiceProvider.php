@@ -4,6 +4,7 @@ namespace Lassi\Providers;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Lassi\Commands\SyncLassi;
 
 class LassiServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,12 @@ class LassiServiceProvider extends ServiceProvider
         Log::debug('boot');
         $this->loadRoutesFrom(__DIR__ .'/../routes/lassi.php');
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
+
+        if ($this->app->runningInConsole()){
+            $this->commands([
+                SyncLassi::class,
+            ]);
+        }
 
 
         $this->publishes([
