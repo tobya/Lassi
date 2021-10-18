@@ -2,10 +2,11 @@
 
 namespace Lassi\Commands;
 
-use App\Http\Controllers\SyncClient;
+
 use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
+use Lassi\Controllers\SyncClient;
 
 class SyncLassi extends Command
 {
@@ -40,14 +41,12 @@ class SyncLassi extends Command
      */
     public function handle()
     {
-        $client = new Client();
-           $result = $client->request( 'GET', 'http://127.0.0.1:8000/api/sync/20210710');
-           $json = $result->getBody()->getContents();
-           $this->info($json);
-           $Sync = new SyncClient();
-        $Sync->updateusers($json);
+
+
+        SyncClient::sync();
         return 0;
     }
+
 
 
 }
