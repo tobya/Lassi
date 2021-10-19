@@ -7,7 +7,7 @@
     "authors": [
         {
             "name": "Toby Allen",
-            "email": "toby@toflidium.com"
+            "email": "tobyallen@toflidium.com"
         }
     ],
     "minimum-stability": "dev",
@@ -19,7 +19,7 @@
         "extra": {
         "laravel":{
             "providers" : [
-                "Lassi\\LassiServiceProvider"
+                "Lassi\\Providers\\LassiServiceProvider"
             ]
         }
     }
