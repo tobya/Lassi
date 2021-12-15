@@ -14,7 +14,7 @@ class Adduid extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('lassi_userid',50)->nullable();
+            $table->uuid('lassi_user_id',50)->nullable();
             $table->json('lassi_data')->nullable();
         });
     }
@@ -27,7 +27,7 @@ class Adduid extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('lassi_userid');
+            $table->dropColumn('lassi_user_id');
             $table->dropColumn('lassi_data');
         });
     }
