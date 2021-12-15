@@ -43,8 +43,8 @@ class SyncLassi extends Command
     {
 
 
-
-        $this->info(SyncClient::sync());
+        $syncClient = new SyncClient();
+        $this->info($syncClient->sync());
         return 0;
     }
 
