@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+
+use Illuminate\Support\Str;
 use Lassi\Interfaces\LassiRetriever;
 
 class ApiSyncServer extends Controller
@@ -18,7 +20,7 @@ class ApiSyncServer extends Controller
     {
         if (!Auth::user()->tokenCan(config('lassi.server.token_ability'))){ return response('Not authorized',401);}
 
-        if (config('lassi.server.retriever') <> ''){
+        if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
             $users = $retriever->UsersFor(Carbon::parse($lastsyncdate), $marker);
@@ -28,6 +30,10 @@ class ApiSyncServer extends Controller
 
 
         $usersWithPassword = $users->map(function($user){
+          if (!$user->lassi_user_id){
+              $user->lassi_user_id =  Str::orderedUuid();
+              $user->save();
+          }
           $user->lassipassword = $user->password;
           return $user;
         });
