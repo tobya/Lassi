@@ -16,9 +16,16 @@ use Lassi\Interfaces\LassiRetriever;
 class ApiSyncServer extends Controller
 {
 
-    public function sync($lastsyncdate, $marker = '')
+    public function sync(Request $request, $lastsyncdate)
     {
-        if (!Auth::user()->tokenCan(config('lassi.server.token_ability'))){ return response('Not authorized',401);}
+       IF (config('lassi.server.check_ability')){
+           if (!Auth::user()->tokenCan(config('lassi.server.token_ability')))
+           {
+               return response('Not authorized - User does not have correct permission',401);
+           }
+       }
+
+        $data = request()->input('lassidata',null);
 
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
@@ -30,15 +37,17 @@ class ApiSyncServer extends Controller
 
 
         $usersWithPassword = $users->map(function($user){
+          // Check for lassi guid and create if not present.
           if (!$user->lassi_user_id){
               $user->lassi_user_id =  Str::orderedUuid();
               $user->save();
           }
+          // Ensure password is sent with user info.
           $user->lassipassword = $user->password;
           return $user;
         });
 
-        return response()->json(['status'=>200,'users' => $usersWithPassword]);
+        return response()->json(['status'=>200, 'users_count' => $usersWithPassword->count(),'users' => $usersWithPassword]);
     }
 
     public function syncspecific(Request $request, $lassi_userid){
