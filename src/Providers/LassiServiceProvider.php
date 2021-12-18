@@ -8,6 +8,8 @@ use Lassi\Commands\SyncLassi;
 
 class LassiServiceProvider extends ServiceProvider
 {
+    
+   
     /**
      * Register services.
      *
