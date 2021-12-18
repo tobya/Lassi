@@ -9,6 +9,11 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Lassi\Events;
+use Lassi\Events\UserCreated;
+use Lassi\Events\UserUpdated;
+
 
 class SyncClient extends BaseController
 {
@@ -25,46 +30,78 @@ class SyncClient extends BaseController
     {
         $data  = json_decode($json);
         Log::debug($json);
-        collect($data->users)->each(function ($u) {
-            $user = $this->FindorCreateUser($u->email);
-            $user->name = $u->name;
-            $user->email = $u->email;
-            log::debug('collecting');
-            collect($user->getAttributes())->each(function ($fieldvalue, $fieldname) use($user, $u){
-                log::debug('allattributes');
-               if (!collect($this->guard)->contains( $fieldname)){
+        $userFields = DB::getSchemaBuilder()->getColumnListing('Users');
+      //  dd($userFields);
+        echo "Attempting to update " . $data->users_count . " users";
+        $GuardedFields = collect($this->guard);
+        collect($data->users)->each(function ($u) use ($userFields, $GuardedFields) {
+            $user = $this->FindorCreateUser($u->lassi_user_id);
+         //   dd(config('lassi.client.duplicate_email_action'));
+            if (config('lassi.client.duplicate_email_action') == 'overwrite'){
+                if (!$user->exists) { // new user, check if emails match
+                   // dd($user);
+                   // echo 'does not exist';
+                    $emaildup = User::where('email',$u->email)->first();
+                    if ($emaildup){
+                        $user = $emaildup;
+                    }
+                } else {
+                   // echo 'user exists';
 
+                  //  dd($user, 'yes');
+                }
+            }
+
+            // Loop through all fields on user table on client. Ignore specified fields and update
+            // fields that exist in both client and incoming data.
+
+            collect($userFields)->each(function ( $fieldname) use($user, $u, $GuardedFields){
+                Log::Debug(json_encode($u));
+               if (!$GuardedFields->contains( $fieldname)){
                    if ($fieldname == 'password'){
                         $user->password = $u->lassipassword;
                    } else {
+                           Log::Debug("user $fieldname =u $fieldname");
                        if (isset($u->{$fieldname})){
-
-                       $user->{$fieldname} =$u->{$fieldname};
-                        log::debug('no guard' . $fieldname . '=' . $u->{$fieldname});
+                           Log::Debug("$fieldname set");
+                        $user->{$fieldname} =$u->{$fieldname};
                        }
                    }
                }
             });
 
-            $user->save();
+            $newUser = !$user->exists;
+            try {
+                $user->save();
+            } catch ( \Exception $e) {
+                                $msg = "Error Happened: " . $e->getMessage() . '. Unable to create user - ' . json_encode($u);
+                                echo $msg;
+                                Log::error($msg);
+            }
+            if ($newUser){
+                UserCreated::dispatch($user);
+            } else {
+                UserUpdated::dispatch($user);
+            }
 
-            echo $user->id;
+           // echo $user->id;
         });
 
         $this->writeConfig($this->currentUpdate);
     }
 
-    public  function sync(){
-                $this->currentUpdate = $this->lastUpdated();
+    public  function sync($data = null){
+                $this->currentUpdate = now();
                 $client = new Client();
                 $headers = [
                 'Accept'        => 'application/json',
-                'Authorization' => 'Bearer ' . config('lassi.token') ,
+                'Authorization' => 'Bearer ' . config('lassi.client.token') ,
                 ];
 
         try {
         echo "Attempting to sync users from " . $this->lastUpdated() . "\n";
-        $result = $client->post(config('lassi.server').  '/lassi/sync/' . $this->lastUpdated(),['headers' => $headers]);
+        echo "Data " . json_encode($data) . "\n";
+        $result = $client->post(config('lassi.server.url').  '/lassi/sync/' .urlencode( $this->lastUpdated()),['headers' => $headers]);
         } catch ( \Exception $e) {
             return "Error Happened :" . $e->getMessage();
         }
@@ -75,11 +112,11 @@ class SyncClient extends BaseController
 
     }
 
-    public  function FindOrCreateUser($email){
-        $user = User::Where('email','=',$email)->first();
+    public  function FindOrCreateUser($uuid){
+        $user = User::Where('lassi_user_id','=',$uuid)->first();
         if (!$user){
             $user = new User();
-            $user->email = $email;
+            $user->lassi_user_id = $uuid;
         }
         return $user;
 
