@@ -23,7 +23,7 @@ class ApiSyncServer extends Controller
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
-            $users = $retriever->UsersFor(Carbon::parse($lastsyncdate), $marker);
+            $users = $retriever->Users(Carbon::parse($lastsyncdate), $data );
         } else {
             $users = User::where('updated_at','>',Carbon::parse($lastsyncdate))->get();
         }

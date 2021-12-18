@@ -6,7 +6,7 @@ namespace Lassi\Interfaces;
 
 interface LassiRetriever
 {
-    public function UsersFor($LastSyncDate, $Marker = '');
+    public function Users($LastSyncDate, $extradata = null);
 
 
 
