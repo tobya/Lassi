@@ -39,7 +39,7 @@ class LassiServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/../config/lassi.php' => config_path('lassi.php'),
-        ]);
+        ], 'lassi');
 
     }
 }
