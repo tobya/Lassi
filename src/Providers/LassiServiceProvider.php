@@ -8,8 +8,6 @@ use Lassi\Commands\SyncLassi;
 
 class LassiServiceProvider extends ServiceProvider
 {
-    
-   
     /**
      * Register services.
      *
@@ -28,7 +26,7 @@ class LassiServiceProvider extends ServiceProvider
     public function boot()
     {
         //
-
+        Log::debug('boot');
         $this->loadRoutesFrom(__DIR__ .'/../routes/lassi.php');
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
 

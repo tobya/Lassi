@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Lassi\Events;
-use Lassi\Events\UserCreated;
-use Lassi\Events\UserUpdated;
+use Lassi\Events\LassiUserCreated;
+use Lassi\Events\LassiUserUpdated;
 
 
 class SyncClient extends BaseController
@@ -65,6 +65,7 @@ class SyncClient extends BaseController
                        if (isset($u->{$fieldname})){
                            Log::Debug("$fieldname set");
                         $user->{$fieldname} =$u->{$fieldname};
+                           Log::Debug("$fieldname set = " . $user->{$fieldname} );
                        }
                    }
                }
@@ -79,9 +80,9 @@ class SyncClient extends BaseController
                                 Log::error($msg);
             }
             if ($newUser){
-                UserCreated::dispatch($user);
+                LassiUserCreated::dispatch($u, $user);
             } else {
-                UserUpdated::dispatch($user);
+                LassiUserUpdated::dispatch($u, $user);
             }
 
            // echo $user->id;
@@ -101,9 +102,14 @@ class SyncClient extends BaseController
         try {
         echo "Attempting to sync users from " . $this->lastUpdated() . "\n";
         echo "Data " . json_encode($data) . "\n";
-        $result = $client->post(config('lassi.server.url').  '/lassi/sync/' .urlencode( $this->lastUpdated()),['headers' => $headers]);
+        $result = $client->post(config('lassi.server.url')
+                                .  '/lassi/sync/'
+                                . urlencode( $this->lastUpdated())
+                                ,['headers' => $headers]);
         } catch ( \Exception $e) {
-            return "Error Happened :" . $e->getMessage();
+            $msg = "Error Happened :" . $e->getMessage();
+            Log::error($msg,['trace' => $e->getTrace()]);
+            return $msg;
         }
 
            $json = $result->getBody()->getContents();
