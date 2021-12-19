@@ -25,7 +25,7 @@ By default the syncronsiation process will copy the following user fields from t
 - password
 - lassi_user_id (a UUID for a lassi user)
 
-the following will not be copied __ remember_token , created_at, updated_at , current_team_id  __
+the following will not be copied _remember_token , created_at, updated_at , current_team_id_
 
 Additionally **ANY** other fields that exist in **both** the server __users__ table and the client __users__ table will be copied.
 
