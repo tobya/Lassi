@@ -30,3 +30,44 @@ the following will not be copied __ remember_token , created_at, updated_at , cu
 Additionally **ANY** other fields that exist in **both** the server __users__ table and the client __users__ table will be copied.
 
 You may specify if lassi is to ignore any other fields.
+
+## Usage
+
+### Server
+Firstly install Lassi on your server
+
+> composer require tobya/lassi
+
+then run migration and publish Lassi Vendor Files.
+
+````
+php artisan migrate
+php artisan vendor:publish --tag=lassi
+````
+
+
+### Client
+
+Install Lassi on your client
+
+> composer require tobya/lassi
+
+then run migration and publish Lassi Vendor Files.
+
+````
+php artisan migrate
+php artisan vendor:publish --tag=lassi
+````
+
+Set Required Enviroment variables in .env
+
+````
+LASSI_SERVER=https://user.for.server.example.com
+````
+
+Run Sync
+````
+php artisan lassi:sync
+`````
+
+This command will sync all users on the server to the client.  Running the command a second time will sync any users that have changed since the last time it was run.
