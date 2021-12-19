@@ -33,6 +33,10 @@ You may specify if lassi is to ignore any other fields.
 
 ## Usage
 
+### Requirements
+
+Currently Requires use of Sanctum tokens to allow access to lassi routes.  User with api Token must have lassi_read permission.
+
 ### Server
 Firstly install Lassi on your server
 
@@ -63,6 +67,7 @@ Set Required Enviroment variables in .env
 
 ````
 LASSI_SERVER=https://user.for.server.example.com
+LASSI_TOKEN=apitokenofuseryouwishtoconnectas-musthavelassi-read-permission
 ````
 
 Run Sync
