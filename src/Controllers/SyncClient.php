@@ -2,7 +2,7 @@
 
 namespace Lassi\Controllers;
 
-use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Routing\Controller as BaseController;
@@ -36,6 +36,7 @@ class SyncClient extends BaseController
         $GuardedFields = collect($this->guard);
         collect($data->users)->each(function ($u) use ($userFields, $GuardedFields) {
             $user = $this->FindorCreateUser($u->lassi_user_id);
+            Log::Debug('Retrieved : ' . $user->name);
          //   dd(config('lassi.client.duplicate_email_action'));
             if (config('lassi.client.duplicate_email_action') == 'overwrite'){
                 if (!$user->exists) { // new user, check if emails match
@@ -56,16 +57,16 @@ class SyncClient extends BaseController
             // fields that exist in both client and incoming data.
 
             collect($userFields)->each(function ( $fieldname) use($user, $u, $GuardedFields){
-                Log::Debug(json_encode($u));
+               // Log::Debug(json_encode($u));
                if (!$GuardedFields->contains( $fieldname)){
                    if ($fieldname == 'password'){
                         $user->password = $u->lassipassword;
                    } else {
-                           Log::Debug("user $fieldname =u $fieldname");
+                        //   Log::Debug("user $fieldname =u $fieldname");
                        if (isset($u->{$fieldname})){
-                           Log::Debug("$fieldname set");
+                         //  Log::Debug("$fieldname set");
                         $user->{$fieldname} =$u->{$fieldname};
-                           Log::Debug("$fieldname set = " . $user->{$fieldname} );
+                       //    Log::Debug("$fieldname set = " . $user->{$fieldname} );
                        }
                    }
                }
@@ -93,11 +94,11 @@ class SyncClient extends BaseController
 
     public  function sync($data = null){
                 $this->currentUpdate = now();
-                $client = new Client();
-                $headers = [
+                $client = Http::withHeaders(
+                [
                 'Accept'        => 'application/json',
                 'Authorization' => 'Bearer ' . config('lassi.client.token') ,
-                ];
+                ])->asForm();
 
         try {
         echo "Attempting to sync users from " . $this->lastUpdated() . "\n";
@@ -105,7 +106,7 @@ class SyncClient extends BaseController
         $result = $client->post(config('lassi.server.url')
                                 .  '/lassi/sync/'
                                 . urlencode( $this->lastUpdated())
-                                ,['headers' => $headers]);
+                                ,['lassidata' => json_encode(  $data)]);
         } catch ( \Exception $e) {
             $msg = "Error Happened :" . $e->getMessage();
             Log::error($msg,['trace' => $e->getTrace()]);
