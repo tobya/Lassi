@@ -13,11 +13,11 @@ Logging in to multiple websites was becoming a pain as I did not wish to have to
 
 Lassi (Laravel Auth Syncronised Sign In) uses a Client - Server model to have one repository of user accounts which is requested and syncronised to the clients on a scheduled basis.
 
-> php auth lassi:sync
+> php artisan lassi:sync
 
 Will syncronise all users that have changed since the last sync.
 
-By default the syncronsiation process will copy the following user fields from the server to the client
+By default the syncronsiation process will copy all fields on the users table from the server to the client. Including...
 
 - name
 - email
@@ -27,7 +27,7 @@ By default the syncronsiation process will copy the following user fields from t
 
 the following will not be copied _remember_token , created_at, updated_at , current_team_id_
 
-Additionally **ANY** other fields that exist in **both** the server __users__ table and the client __users__ table will be copied.
+**ANY** fields that exist in **both** the server __users__ table and the client __users__ table will be copied.
 
 You may specify if lassi is to ignore any other fields.
 
@@ -48,6 +48,36 @@ then run migration and publish Lassi Vendor Files.
 php artisan migrate
 php artisan vendor:publish --tag=lassi
 ````
+
+## Custom Retriever 
+
+By default the Server will return all users that have a changed (updated_at) since the date passed in.  If you want to return a different set of users, it is possible to provide a custom User Retriever.
+
+Simply create a new class that implements the `\Lassi\Interfaces\LassiRetriever` Interface which as a single `Users` function that returns a collection of Users.
+
+````
+class GoldenRetriever implements \Lassi\Interfaces\LassiRetriever
+{
+
+    public function Users($LastSyncDate, $extradata = null){
+        return Users::where('updated_at','>', $LastSyncDate)->where('email','like','%@example.com')->get();   
+    }
+ }
+ 
+````
+
+and set it it in the `config\lassi.php`
+
+````
+return [
+
+    'server' => [
+        ....
+        'retriever' =>  App\Classes\GoldenRetriever::class,
+        
+        ],
+````
+
 
 
 ### Client
