@@ -15,7 +15,10 @@ class LassiServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
+         // merge package and app config
+          $this->mergeConfigFrom(
+                __DIR__.'/../config/lassi.php', 'lassi'
+            );
     }
 
     /**
