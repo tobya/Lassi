@@ -37,10 +37,15 @@ class ApiSyncServer extends Controller
 
 
         $usersWithPassword = $users->map(function($user){
+        
           // Check for lassi guid and create if not present.
           if (!$user->lassi_user_id){
-              $user->lassi_user_id =  Str::orderedUuid();
-              $user->save();
+               // Since it is possible that our retriever will have added additional attributes for transfer,
+              // we cannot save the model we recieve.  We need to retrieve fresh from db.
+              $dbuser = User::find($user->id); 
+              $dbuser->lassi_user_id =  Str::orderedUuid();              
+              $dbuser->save();
+              $user->lassi_user_id = $dbuser->lassi_user_id;
           }
           // Ensure password is sent with user info.
           $user->lassipassword = $user->password;
