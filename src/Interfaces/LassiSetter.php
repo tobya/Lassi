@@ -6,6 +6,6 @@ namespace Lassi\Interfaces;
 
 interface LassiSetter
 {
-   public function Accept($user);
-   
+   public function Accept($lassiuser);
+
 }

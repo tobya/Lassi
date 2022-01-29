@@ -17,6 +17,8 @@ return [
         'handler' => Null ,
     ],
 
+    'version' => '0.3',
+
 
 
 
