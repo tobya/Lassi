@@ -35,6 +35,12 @@ class SyncClient extends BaseController
         echo "Attempting to update " . $data->users_count . " users";
         $GuardedFields = collect($this->guard);
         collect($data->users)->each(function ($u) use ($userFields, $GuardedFields) {
+            
+            // First check if we should deal with this user at all.
+            if (!$this->shouldHandle($u)){
+                return;
+            }
+            
             $user = $this->FindorCreateUser($u->lassi_user_id);
             Log::Debug('Retrieved : ' . $user->name);
          //   dd(config('lassi.client.duplicate_email_action'));
@@ -80,6 +86,7 @@ class SyncClient extends BaseController
                                 echo $msg;
                                 Log::error($msg);
             }
+            
             if ($newUser){
                 LassiUserCreated::dispatch($u, $user);
             } else {
@@ -93,17 +100,17 @@ class SyncClient extends BaseController
     }
 
     public  function sync($data = null){
-                $this->currentUpdate = now();
-                $client = Http::withHeaders(
-                [
-                'Accept'        => 'application/json',
-                'Authorization' => 'Bearer ' . config('lassi.client.token') ,
-                ])->asForm();
+       $this->currentUpdate = now();
+        $client = Http::withHeaders(
+        [
+            'Accept'        => 'application/json',
+            'Authorization' => 'Bearer ' . config('lassi.client.token') ,
+        ])->asForm();
 
         try {
         echo "Attempting to sync users from " . $this->lastUpdated() . "\n";
         echo "Data " . json_encode($data) . "\n";
-        $result = $client->post(config('lassi.server.url')
+            $result = $client->post(config('lassi.server.url')
                                 .  '/lassi/sync/'
                                 . urlencode( $this->lastUpdated())
                                 ,['lassidata' => json_encode(  $data)]);
@@ -154,6 +161,15 @@ class SyncClient extends BaseController
         } else {
             return '19000101';
         }
+    }
+    
+    public function shouldHandle($user){
+        if (config('lassi.client.handler')){
+            $classname = config('lassi.client.handler');
+            $handler = new $classname();
+            return $handler->Accept($user);
+        } 
+        return true;
     }
 
 }
