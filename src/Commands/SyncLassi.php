@@ -41,6 +41,7 @@ class SyncLassi extends Command
      */
     public function handle()
     {
+        // data can be passed in like a query string value1=1&V2=3
         parse_str($this->option('data'),$dataArray);
         $this->warn(json_encode($dataArray));
 
