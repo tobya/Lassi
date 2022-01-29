@@ -43,10 +43,12 @@ class SyncLassi extends Command
     {
         // data can be passed in like a query string value1=1&V2=3
         parse_str($this->option('data'),$dataArray);
-        $this->warn(json_encode($dataArray));
+
 
         $syncClient = new SyncClient();
-        $this->info($syncClient->sync($dataArray));
+        $UpdateInfo = $syncClient->sync($dataArray);
+
+        $this->info($UpdateInfo);
         return 0;
     }
 
