@@ -5,15 +5,11 @@ namespace Lassi\Controllers;
 use Carbon\Carbon;
 use http\Env\Response;
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-
 use Illuminate\Support\Str;
 use Lassi\Interfaces\LassiRetriever;
 
-class ApiSyncServer extends Controller
 {
 
     public function sync(Request $request, $lastsyncdate)
