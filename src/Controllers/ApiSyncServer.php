@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Lassi\Interfaces\LassiRetriever;
 
+class ApiSyncServer 
 {
 
     public function sync(Request $request, $lastsyncdate)
@@ -33,13 +34,13 @@ use Lassi\Interfaces\LassiRetriever;
 
 
         $usersWithPassword = $users->map(function($user){
-        
+
           // Check for lassi guid and create if not present.
           if (!$user->lassi_user_id){
                // Since it is possible that our retriever will have added additional attributes for transfer,
               // we cannot save the model we recieve.  We need to retrieve fresh from db.
-              $dbuser = User::find($user->id); 
-              $dbuser->lassi_user_id =  Str::orderedUuid();              
+              $dbuser =  config('auth.providers.users.model')::find($user->id); //'($user->id);
+              $dbuser->lassi_user_id =  Str::orderedUuid();
               $dbuser->save();
               $user->lassi_user_id = $dbuser->lassi_user_id;
           }
