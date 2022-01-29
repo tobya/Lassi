@@ -48,6 +48,33 @@ then run migration and publish Lassi Vendor Files.
 php artisan migrate
 php artisan vendor:publish --tag=lassi
 ````
+### Client
+
+Install Lassi on your client
+
+> composer require tobya/lassi
+
+then run migration and publish Lassi Vendor Files.
+
+````
+php artisan migrate
+php artisan vendor:publish --tag=lassi
+````
+
+Set Required Enviroment variables in .env
+
+````
+LASSI_SERVER=https://user.for.server.example.com
+LASSI_TOKEN=apitokenofuseryouwishtoconnectas-musthavelassi-read-permission
+````
+
+Run Sync
+````
+php artisan lassi:sync
+`````
+
+This command will sync all users on the server to the client.  Running the command a second time will sync any users that have changed since the last time it was run.
+
 
 ## Custom Retriever 
 
@@ -80,29 +107,4 @@ return [
 
 
 
-### Client
 
-Install Lassi on your client
-
-> composer require tobya/lassi
-
-then run migration and publish Lassi Vendor Files.
-
-````
-php artisan migrate
-php artisan vendor:publish --tag=lassi
-````
-
-Set Required Enviroment variables in .env
-
-````
-LASSI_SERVER=https://user.for.server.example.com
-LASSI_TOKEN=apitokenofuseryouwishtoconnectas-musthavelassi-read-permission
-````
-
-Run Sync
-````
-php artisan lassi:sync
-`````
-
-This command will sync all users on the server to the client.  Running the command a second time will sync any users that have changed since the last time it was run.
