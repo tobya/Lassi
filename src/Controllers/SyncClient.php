@@ -95,6 +95,11 @@ class SyncClient extends BaseController
        return  $this->writeConfig($this->currentUpdate);
     }
 
+    public function syncAll($data = null){
+        $this->writeConfig('19000101');
+        return $this->sync($data);
+    }
+
     public  function sync($data = null){
        $this->currentUpdate = now();
         $client = Http::withHeaders(
