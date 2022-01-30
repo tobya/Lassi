@@ -46,7 +46,7 @@ class SyncLassi extends Command
 
 
         $syncClient = new SyncClient();
-        if ($this->hasOption('all')){
+        if ($this->Option('all') == true){
             $UpdateInfo = $syncClient->syncAll($dataArray);
         } else {
             $UpdateInfo = $syncClient->sync($dataArray);
