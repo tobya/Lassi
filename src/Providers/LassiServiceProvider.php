@@ -28,8 +28,7 @@ class LassiServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
-        Log::debug('boot');
+               
         $this->loadRoutesFrom(__DIR__ .'/../routes/lassi.php');
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
 
@@ -38,7 +37,6 @@ class LassiServiceProvider extends ServiceProvider
                 SyncLassi::class,
             ]);
         }
-
 
         $this->publishes([
             __DIR__.'/../config/lassi.php' => config_path('lassi.php'),
