@@ -79,16 +79,16 @@ class SyncClient extends BaseController
             try {
                 $user->save();
             } catch ( \Exception $e) {
-                                $msg = "[Lassi] Error Happened: " . $e->getMessage() . '. Unable to create user - ' . json_encode($u);
-                                echo $msg;
+                                $msg = "[Lassi] Error Happened: " . $e->getMessage() . '. Unable to create user - ' . json_encode($u);                               
                                 Log::error($msg);
             }
 
             if ($isNewUser){
                 LassiUserCreated::dispatch($u, $user);
-            } else {
-                LassiUserUpdated::dispatch($u, $user);
-            }
+            } 
+            // updated always fires
+            LassiUserUpdated::dispatch($u, $user);
+            
 
         });
 

@@ -8,6 +8,4 @@ interface LassiRetriever
 {
     public function Users($LastSyncDate, $extradata = null);
 
-
-
 }
