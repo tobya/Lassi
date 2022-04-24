@@ -15,7 +15,9 @@ class SyncLassi extends Command
      *
      * @var string
      */
-    protected $signature = 'lassi:sync {--data=} {--all} {--queue=default}';
+    protected $signature = 'lassi:sync  {--data= : Any additional data that should be passed to the lassi server. In querystring format \'a=b&c=d\' }
+                                        {--all : Ignore last sync date and sync all.}
+                                        {--queue=default : Specify Queue that user updates should be added to.}';
 
     /**
      * The console command description.
