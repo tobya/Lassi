@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Lassi\Events;
 use Lassi\Events\LassiUserCreated;
 use Lassi\Events\LassiUserUpdated;
+use Lassi\Jobs\UpdateUserJob;
 
 
 class SyncClient extends BaseController
@@ -26,6 +27,7 @@ class SyncClient extends BaseController
         'two_factor_recovery_codes',
         'remember_token',
         ];
+    public $queue = null;
 
     public  function updateusers($json)
     {
@@ -36,60 +38,7 @@ class SyncClient extends BaseController
         echo "Attempting to update " . $data->users_count . " users";
         $GuardedFields = collect($this->guard);
         collect($data->users)->each(function ($u) use ($userFields, $GuardedFields) {
-
-            // First check if we should deal with this user at all.
-            if (!$this->shouldHandle($u)){
-                return;
-            }
-
-            $user = $this->FindorCreateUser($u->lassi_user_id);
-            Log::Debug('Retrieved : ' . $user->name);
-         //   dd(config('lassi.client.duplicate_email_action'));
-            if (config('lassi.client.duplicate_email_action') == 'overwrite'){
-
-                // if user does not match lassi_user_id and we wish to overwrite then
-                // check if a user can be found matching email.
-                if (!$user->exists) {
-                    $emaildup = User::where('email',$u->email)->first();
-                    if ($emaildup){
-                        // set existing user
-                        $user = $emaildup;
-                    }
-                }
-            }
-
-            // Loop through all fields on user table on client. Ignore specified fields and update
-            // fields that exist in both client and incoming data.
-            collect($userFields)->each(function ( $fieldname) use($user, $u, $GuardedFields){
-
-                // Only attempt to set fields that are not guarded.
-               if (!$GuardedFields->contains( $fieldname)){
-                   if ($fieldname == 'password'){
-                        $user->password = $u->lassipassword;
-                   } else {
-                       // If field exists on client user model set it.
-                       if (isset($u->{$fieldname})){
-                        $user->{$fieldname} =$u->{$fieldname};
-                       }
-                   }
-               }
-            });
-
-            $isNewUser = !$user->exists;
-            try {
-                $user->save();
-            } catch ( \Exception $e) {
-                                $msg = "[Lassi] Error Happened: " . $e->getMessage() . '. Unable to create user - ' . json_encode($u);                               
-                                Log::error($msg);
-            }
-
-            if ($isNewUser){
-                LassiUserCreated::dispatch($u, $user);
-            } 
-            // updated always fires
-            LassiUserUpdated::dispatch($u, $user);
-            
-
+            UpdateUserJob::dispatch($u, $userFields, $GuardedFields)->onQueue($this->queue);
         });
 
        return  $this->writeConfig($this->currentUpdate);
@@ -130,15 +79,7 @@ class SyncClient extends BaseController
 
     }
 
-    public  function FindOrCreateUser($uuid){
-        $user = User::Where('lassi_user_id','=',$uuid)->first();
-        if (!$user){
-            $user = new User();
-            $user->lassi_user_id = $uuid;
-        }
-        return $user;
 
-    }
 
     public  function writeConfig($lastupdate){
         $configfile = storage_path('app/lassi/lassi.config');
@@ -167,13 +108,6 @@ class SyncClient extends BaseController
         }
     }
 
-    public function shouldHandle($user){
-        if (config('lassi.client.handler')){
-            $classname = config('lassi.client.handler');
-            $handler = new $classname();
-            return $handler->Accept($user);
-        }
-        return true;
-    }
+
 
 }

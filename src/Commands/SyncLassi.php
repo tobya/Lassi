@@ -15,7 +15,7 @@ class SyncLassi extends Command
      *
      * @var string
      */
-    protected $signature = 'lassi:sync {--data=} {--all}';
+    protected $signature = 'lassi:sync {--data=} {--all} {--queue=default}';
 
     /**
      * The console command description.
@@ -46,6 +46,7 @@ class SyncLassi extends Command
 
 
         $syncClient = new SyncClient();
+        $syncClient->queue = $this->option('queue');
         if ($this->Option('all') == true){
             $UpdateInfo = $syncClient->syncAll($dataArray);
         } else {
