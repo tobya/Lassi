@@ -3,6 +3,7 @@
 namespace Lassi\Controllers;
 
 use Carbon\Carbon;
+use App\User;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,8 +11,30 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Lassi\Interfaces\LassiRetriever;
 
-class ApiSyncServer 
+class ApiSyncServer
 {
+    /**
+     * Syncall works differntly, it returns a list of all lassi_user_id and then
+     * the client requests them one at a time.
+     * @return mixed
+     */
+    public function syncall(){
+
+        $users = User::all();
+
+        $usersWithPassword = $users->map(function($user) {
+
+          // Check for lassi guid and create if not present.
+          if (!$user->lassi_user_id){
+              $user->lassi_user_id =  Str::orderedUuid();
+              $user->save();
+          }
+
+          return $user->lassi_user_id;
+        });
+
+        return response()->json(['status'=>200, 'users_count' => $usersWithPassword->count(),'users' => $usersWithPassword]);
+    }
 
     public function sync(Request $request, $lastsyncdate)
     {
@@ -33,7 +56,7 @@ class ApiSyncServer
         }
 
 
-        $usersWithPassword = $users->map(function($user){
+        $usersWithPassword = $users->map(function($user) {
 
           // Check for lassi guid and create if not present.
           if (!$user->lassi_user_id){
@@ -46,13 +69,31 @@ class ApiSyncServer
           }
           // Ensure password is sent with user info.
           $user->lassipassword = $user->password;
+
           return $user;
         });
 
         return response()->json(['status'=>200, 'users_count' => $usersWithPassword->count(),'users' => $usersWithPassword]);
     }
 
-    public function syncspecific(Request $request, $lassi_userid){
+
+
+    public function syncuser(Request $request, $lassiuserid){
+        if (config('lassi.server.retriever')){
+            $classname = config('lassi.server.retriever');
+            $retriever = new $classname();
+            $user = $retriever->User($lassiuserid);
+
+        } else {
+            $user = User::where('lassi_user_id',$lassiuserid)->first();
+        }
+        if (!$user){
+
+        return response()->json(['status'=>200, 'users_count' => 0,'users' => []]);
+        }
+          // Ensure password is sent with user info.
+          $user->lassipassword = $user->password;
+        return response()->json(['status'=>200, 'users_count' => 1,'users' => [$user]]);
 
     }
 
