@@ -18,7 +18,7 @@ class ApiSyncServer
      * the client requests them one at a time.
      * @return mixed
      */
-    public function syncall(){
+    public function getall(){
 
         $users = User::all();
 

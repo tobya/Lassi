@@ -5,7 +5,7 @@ use Lassi\Controllers\ApiSyncServer;
 
 
 
-Route::middleware(['auth:sanctum'])->post('lassi/sync/all',[ApiSyncServer::class,'syncall']);
+Route::middleware(['auth:sanctum'])->post('lassi/get/all',[ApiSyncServer::class,'getall']);
 Route::middleware(['auth:sanctum'])->post('lassi/sync/user/{lassiuserid}',[ApiSyncServer::class,'syncuser']);
 Route::get('lassi/sync/user/{lassiuserid}',[ApiSyncServer::class,'syncuser']);
 //Route::get('lassi/sync/all',[ApiSyncServer::class,'syncall']);
