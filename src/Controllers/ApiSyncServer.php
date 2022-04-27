@@ -13,14 +13,10 @@ use Lassi\Interfaces\LassiRetriever;
 
 class ApiSyncServer
 {
-    /**
-     * Syncall works differntly, it returns a list of all lassi_user_id and then
-     * the client requests them one at a time.
-     * @return mixed
-     */
     public function getall(){
+           $users = User::all();
 
-        $users = User::all();
+
 
         $usersWithPassword = $users->map(function($user) {
 
@@ -33,7 +29,7 @@ class ApiSyncServer
           return $user->lassi_user_id;
         });
 
-        return response()->json(['status'=>200, 'users_count' => $usersWithPassword->count(),'users' => $usersWithPassword]);
+        return response()->json(['status'=>200, 'userids_count' => $usersWithPassword->count(),'userids' => $usersWithPassword]);
     }
 
     public function sync(Request $request, $lastsyncdate)
@@ -79,6 +75,7 @@ class ApiSyncServer
 
 
     public function syncuser(Request $request, $lassiuserid){
+        Log::debug($lassiuserid);
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
