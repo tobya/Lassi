@@ -17,8 +17,7 @@ class SyncLassi extends Command
      */
     protected $signature = 'lassi:sync  {--data= : Any additional data that should be passed to the lassi server. In querystring format \'a=b&c=d\' }
                                         {--all : Ignore last sync date and sync all.}
-                                        {--single : Sync All individually. useful with large numbers}
-                                        {--queue=default : Specify Queue that user updates should be added to}';
+                                        {--queue= : Specify Queue that user updates should be added to. If used with --all specifies sync should be performed via job queue}';
 
     /**
      * The console command description.
@@ -49,11 +48,11 @@ class SyncLassi extends Command
 
 
         $syncClient = new SyncClient();
-        $syncClient->queue = $this->option('queue');
+        $syncClient->queue = $this->option('queue','default');
         if ($this->Option('all') == true){
-            if ($this->option('single') == true){
+            if ($this->option('queue') <> null){
 
-            $UpdateInfo = $syncClient->syncAllSingle($dataArray);
+                    $UpdateInfo = $syncClient->syncAllSingle($dataArray);
             } else {
 
             $UpdateInfo = $syncClient->syncAll($dataArray);
