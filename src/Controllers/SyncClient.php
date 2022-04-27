@@ -61,7 +61,7 @@ class SyncClient extends BaseController
         ])->asForm();
 
         try {
-            Log::debug(config('lassi.server.url') .  '/lassi/get/all');
+
             $result = $client->post(config('lassi.server.url') .  '/lassi/get/all');
 
             if ($result->status() <> 200){
@@ -83,7 +83,7 @@ class SyncClient extends BaseController
             });
 
 
-            
+
             $this->writeConfig($this->currentUpdate);
         return 'Added ' . $UserList->userids_count . ' ids to Job list';
     }

@@ -28,6 +28,9 @@ class SyncUserJob implements ShouldQueue
 
     protected $lassiuserid;
 
+    public $tries = 3;
+    public $backoff = 10;
+
     /**
      * Create a new job instance
      * @return void
@@ -49,8 +52,7 @@ class SyncUserJob implements ShouldQueue
         if (!$user){
             return null;
         }
-        Log::debug(json_encode($user) . $this->lassiuserid);
-        Log::debug('dispatch user job:' . $user->name);
+
         UpdateUserJob::dispatchSync($user);
 
     }
@@ -66,8 +68,7 @@ class SyncUserJob implements ShouldQueue
         try {
 
             $result = $client->post(config('lassi.server.url') .  '/lassi/sync/user/' . $lassi_user_id );
-            Log::debug('url: ' .config('lassi.server.url') .  '/lassi/sync/user/' . $lassi_user_id);
-            Log::debug('Result: [' .$result . ']');
+
             if ($result->status() <> 200){
               Log::error('[Lassi:sync] Error Occurred: '. $result->status());
               abort($result->status(),'Error Returned: ' . $result->status() . ' ' .  $result->getBody()->getContents());
