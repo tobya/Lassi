@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Lassi\Events;
 use Lassi\Events\LassiUserCreated;
 use Lassi\Events\LassiUserUpdated;
+use Lassi\Jobs\SyncUserJob;
 use Lassi\Jobs\UpdateUserJob;
 
 
@@ -33,12 +34,12 @@ class SyncClient extends BaseController
     {
         $data  = json_decode($json);
         Log::debug($json);
-        $userFields = DB::getSchemaBuilder()->getColumnListing('Users');
+
       //  dd($userFields);
         echo "Attempting to update " . $data->users_count . " users";
-        $GuardedFields = collect($this->guard);
-        collect($data->users)->each(function ($u) use ($userFields, $GuardedFields) {
-            UpdateUserJob::dispatch($u, $userFields, $GuardedFields)->onQueue($this->queue);
+
+        collect($data->users)->each(function ($u)  {
+            UpdateUserJob::dispatch($u)->onQueue($this->queue);
         });
 
        return  $this->writeConfig($this->currentUpdate);
@@ -48,6 +49,46 @@ class SyncClient extends BaseController
         $this->writeConfig('19000101');
         return $this->sync($data);
     }
+
+    public function syncAllSingle(){
+
+        $this->currentUpdate = now('utc');
+
+        $client = Http::withHeaders(
+        [
+            'Accept'        => 'application/json',
+            'Authorization' => 'Bearer ' . config('lassi.client.token') ,
+        ])->asForm();
+
+        try {
+            Log::debug(config('lassi.server.url') .  '/lassi/get/all');
+            $result = $client->post(config('lassi.server.url') .  '/lassi/get/all');
+
+            if ($result->status() <> 200){
+              Log::error('[Lassi:sync] Error Occurred: '. $result->status());
+              abort($result->status(),'Error Returned: ' . $result->status() . ' ' .  $result->getBody()->getContents());
+            }
+
+        } catch ( \Exception $e) {
+            $msg =  $e->getMessage();
+            Log::error($msg,['trace' => $e->getTrace()]);
+            return $msg;
+        }
+
+           $json = $result->getBody()->getContents();
+
+            $UserList = json_decode($json);
+            collect($UserList->userids)->each(function ($lassi_user_id){
+               SyncUserJob::dispatch($lassi_user_id)->onQueue($this->queue);
+            });
+
+
+            
+            $this->writeConfig($this->currentUpdate);
+        return 'Added ' . $UserList->userids_count . ' ids to Job list';
+    }
+
+
 
     public  function sync($data = null){
        $this->currentUpdate = now();

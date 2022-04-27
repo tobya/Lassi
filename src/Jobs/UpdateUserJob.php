@@ -25,18 +25,26 @@ class UpdateUserJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+        private $guard = [
+        'updated_at',
+        'created_at',
+        'id',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'remember_token',
+        ];
+
     protected $lassiuser;
-    protected $GuardedFields;
+
     protected $userFields;
     /**
      * Create a new job instance
      * @return void
      */
-    public function __construct($lassiuser,$userFields, $GuardedFields)
+    public function __construct($lassiuser)
     {
         $this->lassiuser = $lassiuser;
-        $this->userFields = $userFields;
-        $this->GuardedFields = $GuardedFields;
+
     }
 
     /**
@@ -47,6 +55,7 @@ class UpdateUserJob implements ShouldQueue
     public function handle()
     {
             $u = $this->lassiuser;
+             
 
             // First check if we should deal with this user at all.
             if (!$this->shouldHandle($u)){
@@ -69,12 +78,13 @@ class UpdateUserJob implements ShouldQueue
                 }
             }
 
+            $userFields = DB::getSchemaBuilder()->getColumnListing('Users');
             // Loop through all fields on user table on client. Ignore specified fields and update
             // fields that exist in both client and incoming data.
-            collect($this->userFields)->each(function ( $fieldname) use($user, $u){
+            collect($userFields)->each(function ( $fieldname) use($user, $u){
 
                 // Only attempt to set fields that are not guarded.
-               if (! $this->GuardedFields->contains( $fieldname)){
+               if (! collect($this->guard)->contains( $fieldname)){
                    if ($fieldname == 'password'){
                         $user->password = $u->lassipassword;
                    } else {
