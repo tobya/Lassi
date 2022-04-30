@@ -78,7 +78,7 @@ class UpdateUserJob implements ShouldQueue
                 }
             }
 
-            $userFields = DB::getSchemaBuilder()->getColumnListing('Users');
+            $userFields = DB::getSchemaBuilder()->getColumnListing('users');
             // Loop through all fields on user table on client. Ignore specified fields and update
             // fields that exist in both client and incoming data.
             collect($userFields)->each(function ( $fieldname) use($user, $u){

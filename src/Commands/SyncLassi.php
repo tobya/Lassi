@@ -51,7 +51,7 @@ class SyncLassi extends Command
         $syncClient->queue = $this->option('queue','default');
         if ($this->Option('all') == true){
             if ($this->option('queue') <> null){
-
+                    $this->info('Adding Lassi Users to Job Queue.  Working...');
                     $UpdateInfo = $syncClient->syncAllSingle($dataArray);
             } else {
 
