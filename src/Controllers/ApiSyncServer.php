@@ -46,9 +46,9 @@ class ApiSyncServer
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
-            $users = $retriever->Users(Carbon::parse($lastsyncdate), $data );
+            $users = $retriever->Users(Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')), $data );
         } else {
-            $users = User::where('updated_at','>',Carbon::parse($lastsyncdate))->get();
+            $users = User::where('updated_at','>',Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')))->get();
         }
 
 
