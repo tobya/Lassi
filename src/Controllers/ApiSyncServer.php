@@ -13,10 +13,13 @@ use Lassi\Interfaces\LassiRetriever;
 
 class ApiSyncServer
 {
+    /**
+     * Respond to getall request.  Return just the lassi_user_id for all users.  This can be used
+     * to sync very large number of users one by one.
+     * @return Response
+     */
     public function getall(){
-           $users = User::all();
-
-
+        $users = User::all();
 
         $usersWithPassword = $users->map(function($user) {
 
@@ -32,9 +35,15 @@ class ApiSyncServer
         return response()->json(['status'=>200, 'userids_count' => $usersWithPassword->count(),'userids' => $usersWithPassword]);
     }
 
+    /**
+     * Respond to sync request, retrieve all users changed after specified time and return to client.
+     * @param Request $request
+     * @param $lastsyncdate
+     * @return mixed
+     */
     public function sync(Request $request, $lastsyncdate)
     {
-       IF (config('lassi.server.check_ability')){
+       if (config('lassi.server.check_ability')){
            if (!Auth::user()->tokenCan(config('lassi.server.token_ability')))
            {
                return response('Not authorized - User does not have correct permission',401);
@@ -73,7 +82,12 @@ class ApiSyncServer
     }
 
 
-
+    /**
+     * Respond to a sync request for a specific user.  Return user info.
+     * @param Request $request
+     * @param $lassiuserid
+     * @return Response | null
+     */
     public function syncuser(Request $request, $lassiuserid){
         Log::debug($lassiuserid);
         if (config('lassi.server.retriever')){
