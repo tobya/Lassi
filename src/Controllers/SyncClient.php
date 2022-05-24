@@ -39,7 +39,7 @@ class SyncClient extends BaseController
         echo "Attempting to update " . $data->users_count . " users";
 
         collect($data->users)->each(function ($u)  {
-            UpdateUserJob::dispatch($u)->onQueue($this->queue);
+            UpdateUserJob::dispatch($u);
         });
 
        return  $this->writeConfig($this->currentUpdate);
