@@ -105,6 +105,8 @@ return [
         ],
 ````
 
+## Custom Setter
 
+By default Lassi will create a user in the client for every user returned.  If you wish to choose if a particular user should be created, then you can implement the Custom Setter Interface `\Lassi\Interfaces\LassiSetter`
 
 
