@@ -105,6 +105,27 @@ return [
         ],
 ````
 
+### Adding additional fields 
+
+Sometimes it may be desired to provide additional information with the user being retrieved.  eg.  perhaps there is an internal id that is retrieved from a seperate table.  This can be added at this stage.
+
+
+````
+class GoldenRetriever implements \Lassi\Interfaces\LassiRetriever
+{
+
+    public function Users($LastSyncDate, $extradata = null){
+        $RetrievedUsers = Users::where('updated_at','>', $LastSyncDate)->where('email','like','%@example.com')->get();   
+        $RetrievedUsers = $RetrievedUsers->map(function($user){
+          $user->specialid = $user->specialModel->getid();
+          return $user;
+        });
+        return $RetrievedUsers;
+    }
+ }
+ 
+````
+
 ## Custom Setter
 
 By default Lassi will create a user in the client for every user returned.  If you wish to choose if a particular user should be created, then you can implement the Custom Setter Interface `\Lassi\Interfaces\LassiSetter`
