@@ -81,10 +81,10 @@ class SyncUserJob implements ShouldQueue
         }
 
            $json = $result->getBody()->getContents();
-        Log::debug('json:' . $json);
+       // Log::debug('json:' . $json);
             $result = json_decode($result);
 
-            Log::debug(json_last_error_msg() . json_last_error());
+          //  Log::debug(json_last_error_msg() . json_last_error());
             if ($result->users_count == 1){
                 return $result->users[0];
             }
