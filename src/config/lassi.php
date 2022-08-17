@@ -11,6 +11,7 @@ return [
         'check_ability' => env('LASSI_CHECKABILITY',true),
         ],
     'client' => [
+        'usermodel' => 'App\Models\User',
         'token' => env('LASSI_TOKEN'),
         'server' => env('LASSI_SERVER'),
         'duplicate_email_action' => 'overwrite' , // [overwrite, ignore, error]

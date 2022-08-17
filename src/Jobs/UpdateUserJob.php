@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use http\Client;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
-use App\Models\User;
+
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -37,6 +37,7 @@ class UpdateUserJob implements ShouldQueue
     protected $lassiuser;
 
     protected $userFields;
+    protected $UserModel;
     /**
      * Create a new job instance
      * @return void
@@ -44,6 +45,7 @@ class UpdateUserJob implements ShouldQueue
     public function __construct($lassiuser)
     {
         $this->lassiuser = $lassiuser;
+        $this->UserModel = config('lassi.client.usermodel');
 
     }
 
@@ -55,7 +57,7 @@ class UpdateUserJob implements ShouldQueue
     public function handle()
     {
             $u = $this->lassiuser;
-             
+
 
             // First check if we should deal with this user at all.
             if (!$this->shouldHandle($u)){
@@ -70,7 +72,7 @@ class UpdateUserJob implements ShouldQueue
                 // if user does not match lassi_user_id and we wish to overwrite then
                 // check if a user can be found matching email.
                 if (!$user->exists) {
-                    $emaildup = User::where('email',$u->email)->first();
+                    $emaildup = $this->UserModel::where('email',$u->email)->first();
                     if ($emaildup){
                         // set existing user
                         $user = $emaildup;
@@ -114,9 +116,9 @@ class UpdateUserJob implements ShouldQueue
     }
 
     public  function FindOrCreateUser($uuid){
-        $user = User::Where('lassi_user_id','=',$uuid)->first();
+        $user = $this->UserModel::Where('lassi_user_id','=',$uuid)->first();
         if (!$user){
-            $user = new User();
+            $user = new $this->UserModel();
             $user->lassi_user_id = $uuid;
         }
         return $user;
