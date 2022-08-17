@@ -11,10 +11,51 @@ return [
         'check_ability' => env('LASSI_CHECKABILITY',true),
         ],
     'client' => [
+
+        /**
+         * ---------------------------------------------------------
+         * LASSI USER MODEL
+         * ---------------------------------------------------------
+         * This is set to current standard model \App\Models\User if you need to specify a different Namespaced
+         * user model you can provide it her.
+         */
         'usermodel' => 'App\Models\User',
-        'token' => env('LASSI_TOKEN'),
+
+        /**
+         * ---------------------------------------------------------
+         * LASSI SERVER
+         * ---------------------------------------------------------
+         * Server that lassi should connect to to request users.
+         */
         'server' => env('LASSI_SERVER'),
+
+
+        /**
+         * ---------------------------------------------------------
+         * LASSI CONNECTION TOKEN
+         * ---------------------------------------------------------
+         */
+        'token' => env('LASSI_TOKEN'),
+
+        /**
+         * ---------------------------------------------------------
+         * DUPLICATE EMAIL ACTION
+         * ---------------------------------------------------------
+         * When a user on the client does not yet have a matching lassi_user_id but a matching email, what action
+         * should be taken
+         * - Overwrite existing user
+         * - Ignore the new user
+         * - Raise an error.
+         */
         'duplicate_email_action' => 'overwrite' , // [overwrite, ignore, error]
+
+        /**
+         * ----------------------------------------------------------
+         *  Custom Handler
+         * If you would like to use a custom handler to update the recieved user, specify it here.
+         * Handler must implement Lassi\Interfaces\LassiSetter
+         * ----------------------------------------------------------
+         */
         'handler' => Null ,
     ],
 
