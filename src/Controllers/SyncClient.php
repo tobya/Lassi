@@ -136,6 +136,10 @@ class SyncClient extends BaseController
         return $configfile;
     }
 
+    /**
+     *
+     * @return mixed|string
+     */
     public function lastUpdated()
     {
         $configfn = storage_path('app/lassi/lassi.config');
