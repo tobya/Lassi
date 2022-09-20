@@ -5,7 +5,7 @@ Laravel Auth Syncronised Sign In
 
 ## Background
 
-In our company we have several applications across multiple sites.  The perform differnt functions are it is a definite convenience to have them across seperate domains.  Some are available to our staff members and some are available to customers and some are available to both.  We have a central application that has a customer record for everyone (this can easily be converted to a user record).  
+In our company we have several applications across multiple sites.  They perform differnt functions and it is a definite convenience to have them split across seperate domains.  Some are available to our staff members and some are available to customers and some are available to both.  We have a central application that has a customer record for everyone (this can easily be converted to a user record).  
 
 Logging in to multiple websites was becoming a pain as I did not wish to have to make people create seperate account son each site and have to figure out who was a customer, who was a staff member and assign roles as required.  So I wrote Lassi.  It is not 0Auth and it is not SSI and many may think its not a good idea but it solves a problem I have.
 
@@ -105,6 +105,29 @@ return [
         ],
 ````
 
+### Adding additional fields 
 
+Sometimes it may be desired to provide additional information with the user being retrieved.  eg.  perhaps there is an internal id that is retrieved from a seperate table.  This can be added at this stage.
+
+
+````
+class GoldenRetriever implements \Lassi\Interfaces\LassiRetriever
+{
+
+    public function Users($LastSyncDate, $extradata = null){
+        $RetrievedUsers = Users::where('updated_at','>', $LastSyncDate)->where('email','like','%@example.com')->get();   
+        $RetrievedUsers = $RetrievedUsers->map(function($user){
+          $user->specialid = $user->specialModel->getid();
+          return $user;
+        });
+        return $RetrievedUsers;
+    }
+ }
+ 
+````
+
+## Custom Setter
+
+By default Lassi will create a user in the client for every user returned.  If you wish to choose if a particular user should be created, then you can implement the Custom Setter Interface `\Lassi\Interfaces\LassiSetter`
 
 
