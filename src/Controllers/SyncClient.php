@@ -39,7 +39,7 @@ class SyncClient extends BaseController
         echo "Attempting to update " . $data->users_count . " users";
 
         collect($data->users)->each(function ($u)  {
-            UpdateUserJob::dispatch($u)->onQueue($this->queue);
+            UpdateUserJob::dispatch($u);
         });
 
        return  $this->writeConfig($this->currentUpdate);
@@ -75,16 +75,16 @@ class SyncClient extends BaseController
             return $msg;
         }
 
-           $json = $result->getBody()->getContents();
+        $json = $result->getBody()->getContents();
 
-            $UserList = json_decode($json);
-            collect($UserList->userids)->each(function ($lassi_user_id){
-               SyncUserJob::dispatch($lassi_user_id)->onQueue($this->queue);
-            });
+        $UserList = json_decode($json);
+        collect($UserList->userids)->each(function ($lassi_user_id){
+           SyncUserJob::dispatch($lassi_user_id)->onQueue($this->queue);
+        });
 
 
 
-            $this->writeConfig($this->currentUpdate);
+        $this->writeConfig($this->currentUpdate);
         return 'Added ' . $UserList->userids_count . ' ids to Job list';
     }
 
