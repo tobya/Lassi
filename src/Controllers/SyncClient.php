@@ -75,16 +75,16 @@ class SyncClient extends BaseController
             return $msg;
         }
 
-           $json = $result->getBody()->getContents();
+        $json = $result->getBody()->getContents();
 
-            $UserList = json_decode($json);
-            collect($UserList->userids)->each(function ($lassi_user_id){
-               SyncUserJob::dispatch($lassi_user_id)->onQueue($this->queue);
-            });
+        $UserList = json_decode($json);
+        collect($UserList->userids)->each(function ($lassi_user_id){
+           SyncUserJob::dispatch($lassi_user_id)->onQueue($this->queue);
+        });
 
 
 
-            $this->writeConfig($this->currentUpdate);
+        $this->writeConfig($this->currentUpdate);
         return 'Added ' . $UserList->userids_count . ' ids to Job list';
     }
 
@@ -136,6 +136,10 @@ class SyncClient extends BaseController
         return $configfile;
     }
 
+    /**
+     *
+     * @return mixed|string
+     */
     public function lastUpdated()
     {
         $configfn = storage_path('app/lassi/lassi.config');
