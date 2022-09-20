@@ -128,12 +128,36 @@ class UpdateUserJob implements ShouldQueue
     }
 
     public function shouldHandle($user){
+
         if (config('lassi.client.handler')){
             $classname = config('lassi.client.handler');
             $handler = new $classname();
-            return $handler->Accept($user);
+            if ($handler instanceof LassiRetriever){
+                return $handler->Accept($user);
+            }
         }
         return true;
+    }
+
+    /**
+     * @param $lassiuser
+     * @param $user
+     * @return $user
+     */
+    public function MapExtra($lassiuser, $user) {
+        if (config('lassi.client.handler')){
+            $classname = config('lassi.client.handler');
+            $handler = new $classname();
+            if ($handler instanceof LassiMapper){
+              $returneduser = $handler->map($lassiuser, $user);
+              if (is_null($returneduser)){
+                  throw new \Exception('LassiMapper::map() Implementation does not return $user object ');
+              }
+              return $returneduser;
+            }
+
+        }
+        return $user;
     }
 
 
