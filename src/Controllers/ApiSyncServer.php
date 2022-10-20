@@ -3,7 +3,7 @@
 namespace Lassi\Controllers;
 
 use Carbon\Carbon;
-use App\User;
+
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,13 +13,20 @@ use Lassi\Interfaces\LassiRetriever;
 
 class ApiSyncServer
 {
+    protected string $usermodel ;
+
+    public function __construct()
+    {
+        $this->usermodel = config('auth.providers.users.model');
+    }
+
     /**
      * Respond to getall request.  Return just the lassi_user_id for all users.  This can be used
      * to sync very large number of users one by one.
      * @return Response
      */
     public function getall(){
-        $users = User::all();
+        $users = $this->usermodel::all();
 
         $usersWithPassword = $users->map(function($user) {
 
@@ -46,7 +53,7 @@ class ApiSyncServer
        if (config('lassi.server.check_ability')){
            if (!Auth::user()->tokenCan(config('lassi.server.token_ability')))
            {
-               return response('Not authorized - User does not have correct permission',401);
+               return response('Not authorized - $this->>$this->usermodel does not have correct permission',401);
            }
        }
 
@@ -55,9 +62,9 @@ class ApiSyncServer
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
-            $users = $retriever->Users(Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')), $data );
+            $users = $retriever->$this->usermodels(Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')), $data );
         } else {
-            $users = User::where('updated_at','>',Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')))->get();
+            $users = $this->usermodel::where('updated_at','>',Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')))->get();
         }
 
 
@@ -67,7 +74,7 @@ class ApiSyncServer
           if (!$user->lassi_user_id){
                // Since it is possible that our retriever will have added additional attributes for transfer,
               // we cannot save the model we recieve.  We need to retrieve fresh from db.
-              $dbuser =  config('auth.providers.users.model')::find($user->id); //'($user->id);
+              $dbuser =  $this->usermodel::find($user->id); //'($user->id);
               $dbuser->lassi_user_id =  Str::orderedUuid();
               $dbuser->save();
               $user->lassi_user_id = $dbuser->lassi_user_id;
@@ -93,10 +100,10 @@ class ApiSyncServer
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
-            $user = $retriever->User($lassiuserid);
+            $user = $retriever->$this->usermodel($lassiuserid);
 
         } else {
-            $user = User::where('lassi_user_id',$lassiuserid)->first();
+            $user = $this->usermodel::where('lassi_user_id',$lassiuserid)->first();
         }
         if (!$user){
 
@@ -110,10 +117,10 @@ class ApiSyncServer
 
     public function updateuser(Request $request,  $lassi_userid){
         // not yet tested
-        $U = User::where('lassi_userid',$lassi_userid);
+        $U = $this->usermodel::where('lassi_userid',$lassi_userid);
         $update = json_decode($request->input('info'));
         if (!$U){
-            $U = new User();
+            $U = new $this->usermodel();
         }
         $U->name = $update->name;
         $U->email = $update->email;
