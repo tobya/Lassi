@@ -36,7 +36,7 @@ class SyncClient extends BaseController
         Log::debug($json);
 
       //  dd($userFields);
-        echo "Attempting to update " . $data->users_count . " users";
+        echo "Attempting to update " . $data->users_count . " users. Pushed onto Queue.";
 
         collect($data->users)->each(function ($u)  {
             UpdateUserJob::dispatch($u);
