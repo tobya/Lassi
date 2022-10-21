@@ -4,10 +4,18 @@
 namespace Lassi\Interfaces;
 
 
+use Illuminate\Contracts\Auth\Authenticatable;
+
 interface LassiSetter
 {
-   public function Accept($lassiuser);
 
+    /**
+     * Should the client accpet the lassi user
+     * return true or false
+     * @param $lassiuser
+     * @return mixed
+     */
+   public function Accept($lassiuser);
 
     /**
      * Move any desired values from lassiuser to created user.
@@ -17,4 +25,5 @@ interface LassiSetter
      * @return mixed | Authenticatable;
      */
    public function Update($lassiuser, $user);
+
 }
