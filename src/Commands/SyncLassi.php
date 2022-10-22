@@ -6,6 +6,7 @@ namespace Lassi\Commands;
 use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Lassi\Controllers\SyncClient;
 
 class SyncLassi extends Command
@@ -60,8 +61,9 @@ class SyncLassi extends Command
         } else {
             $UpdateInfo = $syncClient->sync($dataArray);
         }
-
-        $this->info($UpdateInfo);
+        Log::debug('About to log' . $UpdateInfo);
+        echo $UpdateInfo;
+        $this->warn($UpdateInfo);
         return 0;
     }
 

@@ -28,7 +28,7 @@ class SyncClient extends BaseController
         'two_factor_recovery_codes',
         'remember_token',
         ];
-    public $queue = null;
+    public $queue = 'default';
 
     public  function updateusers($json)
     {
@@ -42,7 +42,7 @@ class SyncClient extends BaseController
             UpdateUserJob::dispatch($u);
         });
 
-       return  $this->writeConfig($this->currentUpdate);
+       return  $this->writeConfig($data->lastitem_updated_at);
     }
 
     public function syncAll($data = null){
@@ -79,6 +79,7 @@ class SyncClient extends BaseController
 
         $UserList = json_decode($json);
         collect($UserList->userids)->each(function ($lassi_user_id){
+            echo "\n Adding " , $lassi_user_id;
            SyncUserJob::dispatch($lassi_user_id)->onQueue($this->queue);
         });
 
@@ -100,12 +101,29 @@ class SyncClient extends BaseController
 
         try {
 
-            $result = $client->post(config('lassi.server.url') .  '/lassi/sync/' . urlencode( $this->lastUpdated())
+            $count_result = $client->post(config('lassi.server.url') .  '/lassi/sync/count/' . urlencode( $this->lastUpdated())
                                 ,['lassidata' => json_encode(  $data)]);
+             $json = $count_result->getBody()->getContents();
+             $count = json_decode($json);
+             Log::debug('about to log json');
+             Log::debug($json);
+             //Log::debug( print_r($count,true));
+            if ($count->users_count > 100){
+                return $this->syncSingle();
 
-            if ($result->status() <> 200){
-              Log::error('[Lassi:sync] Error Occurred: '. $result->status());
-              abort($result->status(),'Error Returned: ' . $result->status() . ' ' .  $result->getBody()->getContents());
+            } else {
+
+
+                $result = $client->post(config('lassi.server.url') .  '/lassi/sync/' . urlencode( $this->lastUpdated())
+                                    ,['lassidata' => json_encode(  $data)]);
+
+                if ($result->status() <> 200){
+                  Log::error('[Lassi:sync] Error Occurred: '. $result->status());
+                  abort($result->status(),'Error Returned: ' . $result->status() . ' ' .  $result->getBody()->getContents());
+                }
+                $json = $result->getBody()->getContents();
+                return  $this->updateusers($json);
+
             }
 
         } catch ( \Exception $e) {
@@ -114,9 +132,36 @@ class SyncClient extends BaseController
             return $msg;
         }
 
-           $json = $result->getBody()->getContents();
 
-          return  $this->updateusers($json);
+
+    }
+
+    public function syncSingle(){
+        //lassi/sync/ids/{lastsyncdate}
+        $client = Http::withHeaders(
+        [
+            'Accept'        => 'application/json',
+            'Authorization' => 'Bearer ' . config('lassi.client.token') ,
+        ])->asForm();
+        try {
+            $result = $client->post(config('lassi.server.url') .  '/lassi/sync/ids/' . urlencode( $this->lastUpdated()));
+
+            $json = $result->getBody()->getContents();
+            Log::debug($json);
+            $UserList = json_decode($json);
+
+            collect($UserList->user_ids)->each(function ($lassi_user_id){
+               SyncUserJob::dispatch($lassi_user_id)->onQueue($this->queue);
+            });
+            Log::debug('[Past collect');
+        } catch ( \Exception $e) {
+            $msg =  $e->getMessage();
+            Log::error($msg,['trace' => $e->getTrace()]);
+            return $msg;
+        }
+        $this->writeConfig($UserList->lastitem_updated_at);
+
+        return 'Added v ' . $UserList->user_ids_count . ' ids to Job list';
 
     }
 
