@@ -14,6 +14,7 @@ use Lassi\Interfaces\LassiRetriever;
 class ApiSyncServer
 {
     protected string $usermodel ;
+    protected $lastuser_updated_at;
 
     public function __construct()
     {
@@ -39,7 +40,22 @@ class ApiSyncServer
           return $user->lassi_user_id;
         });
 
-        return response()->json(['status'=>200, 'userids_count' => $usersWithPassword->count(),'userids' => $usersWithPassword]);
+
+
+        return response()->json(['status'=>200,
+                                'lastitem_updated_at' => $this->lastuser_updated_at,
+                                'userids_count' => $usersWithPassword->count(),
+                                'userids' => $usersWithPassword]);
+    }
+
+    /**
+     * @param Request $request
+     * @param $lastsyncdate
+     * @return void
+     */
+    public function count(Request $request, $lastsyncdate){
+        $users = $this->getUsers($lastsyncdate);
+        return response()->json(['status'=>200, 'users_count' => $users->count()??0 ]);
     }
 
     /**
@@ -50,44 +66,69 @@ class ApiSyncServer
      */
     public function sync(Request $request, $lastsyncdate)
     {
+        $users = $this->getUsers($lastsyncdate);
+
+
+        return response()->json(['status'=>200, 'lastitem_updated_at' => $this->lastuser_updated_at, 'users_count' => $users->count(),'users' => $users]);
+    }
+
+    public function getsyncids(Request $request, $lastsyncdate){
+        $users = $this->getUsers($lastsyncdate);
+        Log::debug($users);
+        return response()->json([
+            'status'=>200,
+            'lastitem_updated_at' => $this->lastuser_updated_at,
+            'user_ids_count' => $users->count(),
+            'user_ids' => $users->pluck('lassi_user_id')]);
+
+    }
+
+    protected function getUsers($lastsyncdate){
        if (config('lassi.server.check_ability')){
            if (!Auth::user()->tokenCan(config('lassi.server.token_ability')))
            {
-               return response('Not authorized - $this->>$this->usermodel does not have correct permission',401);
+               return response('Not authorized - user does not have correct permission',401);
            }
        }
 
         $data = request()->input('lassidata',null);
 
+
+        $startsync = Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone'));
+        $endsync = now()->setTimeZone(config('app.timezone'))->subSecond();
+
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
-            $users = $retriever->$this->usermodels(Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')), $data );
+            $users = $retriever->users($startsync,$endsync, $data );
         } else {
-            $users = $this->usermodel::where('updated_at','>',Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone')))->get();
+            $users = $this->usermodel::whereBetween('updated_at',
+                [$startsync,$endsync])
+                ->orderby('updated_at' ,'asc')
+                ->get();
         }
-
 
         $usersWithPassword = $users->map(function($user) {
 
-          // Check for lassi guid and create if not present.
-          if (!$user->lassi_user_id){
-               // Since it is possible that our retriever will have added additional attributes for transfer,
-              // we cannot save the model we recieve.  We need to retrieve fresh from db.
-              $dbuser =  $this->usermodel::find($user->id); //'($user->id);
-              $dbuser->lassi_user_id =  Str::orderedUuid();
-              $dbuser->save();
-              $user->lassi_user_id = $dbuser->lassi_user_id;
-          }
-          // Ensure password is sent with user info.
-          $user->lassipassword = $user->password;
+              // Check for lassi guid and create if not present.
+              if (!$user->lassi_user_id){
+                   // Since it is possible that our retriever will have added additional attributes for transfer,
+                  // we cannot save the model we recieve.  We need to retrieve fresh from db.
+                  $dbuser =  $this->usermodel::find($user->id); //'($user->id);
+                  $dbuser->lassi_user_id =  Str::orderedUuid();
+                  $dbuser->save();
+                  $user->lassi_user_id = $dbuser->lassi_user_id;
+              }
+              // Ensure password is sent with user info.
+              $user->lassipassword = $user->password;
 
-          return $user;
+              return $user;
         });
 
-        return response()->json(['status'=>200, 'users_count' => $usersWithPassword->count(),'users' => $usersWithPassword]);
-    }
 
+         $this->lastuser_updated_at =  $endsync;
+        return $usersWithPassword;
+    }
 
     /**
      * Respond to a sync request for a specific user.  Return user info.
@@ -100,7 +141,7 @@ class ApiSyncServer
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
-            $user = $retriever->$this->usermodel($lassiuserid);
+            $user = $retriever->user($lassiuserid);
 
         } else {
             $user = $this->usermodel::where('lassi_user_id',$lassiuserid)->first();
