@@ -25,7 +25,7 @@ return [
          * ---------------------------------------------------------
          * LASSI SERVER
          * ---------------------------------------------------------
-         * Server that lassi should connect to to request users.
+         * Server that lassi should connect to, to request users.
          */
         'server' => env('LASSI_SERVER'),
 
