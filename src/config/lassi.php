@@ -17,7 +17,7 @@ return [
          * LASSI USER MODEL
          * ---------------------------------------------------------
          * This is set to current standard model \App\Models\User if you need to specify a different Namespaced
-         * user model you can provide it her.
+         * user model you can provide it here.
          */
         'usermodel' => 'App\Models\User',
 
@@ -59,7 +59,7 @@ return [
         'handler' => Null ,
     ],
 
-    'version' => '0.3',
+    'version' => '0.5',
 
 
 
