@@ -68,7 +68,7 @@ class UpdateUserJob implements ShouldQueue
             }
 
             $user = $this->FindorCreateUser($lassiuser->lassi_user_id);
-            Log::Debug('Retrieved : ' . $user->name);
+            Log::Debug('Retrieved : ' . $user->lassi_user_id);
 
             if (config('lassi.client.duplicate_email_action') == 'overwrite'){
 
@@ -100,6 +100,7 @@ class UpdateUserJob implements ShouldQueue
                    }
                }
             });
+            Log::Debug('Updated : ' . $user->name);
 
 
             $isNewUser = !$user->exists;
