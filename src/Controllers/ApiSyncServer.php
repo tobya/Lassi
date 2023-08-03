@@ -13,6 +13,7 @@ use Lassi\Interfaces\LassiRetriever;
 
 class ApiSyncServer
 {
+
     protected string $usermodel ;
     protected $lastuser_updated_at;
 
