@@ -37,10 +37,16 @@ class SyncClient extends BaseController
         Log::debug($json);
 
       //  dd($userFields);
-        echo "Attempting to update " . $data->users_count . " users";
+        echo "Pushing " . $data->users_count . " user update jobs on to the Queue.";
 
-        collect($data->users)->each(function ($u)  {
-            UpdateUserJob::dispatch($u);
+        $i = 0;
+        collect($data->users)->each(function ($u) use(&$i)  {
+            $i++;
+            UpdateUserJob::dispatch($u)->onQueue(config('lassi.client.queue'));
+
+            if ($i % 100 == 0){
+                echo '.';
+            }
         });
 
        return  $this->writeConfig($this->currentUpdate);
@@ -97,12 +103,16 @@ class SyncClient extends BaseController
         [
             'Accept'        => 'application/json',
             'Authorization' => 'Bearer ' . config('lassi.client.token') ,
+            'Lassi-Version' => '2.0',
         ])->asForm();
 
         try {
             $url = config('lassi.server.url') .  '/lassi/sync/' . urlencode( $this->lastUpdated());
             $result = $client->post($url
-                                ,['lassidata' => json_encode(  $data)]);
+                                ,[
+                                    'lassidata' => json_encode(  $data),
+                                    'lastsyncdate' => $this->lastUpdated(),
+                ]);
 
             if ($result->status() <> 200){
               Log::error('[Lassi:sync] Error Occurred: '. $result->status());
