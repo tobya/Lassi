@@ -20,3 +20,19 @@ Route::get('lassi/sync/{lastsyncdate}/{marker?}',[ApiSyncServer::class,'sync']);
 // Update details of a specific user - new password etc.
 Route::middleware(['auth:sanctum'])->post('lassi/update/{lassiuserid}',[ApiSyncServer::class,'updateuser']);
 
+
+    /**
+     *  /lassi/count
+     *  /lassi/sync
+     *  /lassi/sync/all
+     *  /lassi/sync/ids
+     *  /lassi/user/{lassi_user_id}/sync
+     *
+     */
+
+    //v2
+Route::group(['middleware' => ['auth:sanctum']],function(){
+
+    Route::post('/lassi/count',[\Lassi\Server\Controllers\ServerController::class, 'count']);
+
+});

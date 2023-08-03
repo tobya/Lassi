@@ -10,16 +10,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Lassi\Interfaces\LassiRetriever;
+use Illuminate\Routing\Controller;
+use Lassi\Middleware\CheckVersionMiddleware;
 
-class ApiSyncServer
+class ApiSyncServer extends Controller
 {
-
     protected string $usermodel ;
     protected $lastuser_updated_at;
 
     public function __construct()
     {
         $this->usermodel = config('auth.providers.users.model');
+        $this->middleware(CheckVersionMiddleware::class);
     }
 
     /**
@@ -67,6 +69,8 @@ class ApiSyncServer
      */
     public function sync(Request $request, $lastsyncdate)
     {
+        Log::debug('Client Request Date:' . $lastsyncdate);
+        Log::debug('Client Request Date Sent header:' .  $request->input('lastsyncdate', now()));
         $users = $this->getUsers($lastsyncdate);
 
 
