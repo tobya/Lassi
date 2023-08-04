@@ -17,6 +17,7 @@ use Lassi\Events\LassiUserCreated;
 use Lassi\Events\LassiUserUpdated;
 use Lassi\Jobs\SyncUserJob;
 use Lassi\Jobs\UpdateUserJob;
+use Lassi\Middleware\CheckVersionMiddleware;
 
 
 class SyncClient extends BaseController
@@ -95,6 +96,37 @@ class SyncClient extends BaseController
         return 'Added ' . $UserList->userids_count . ' ids to Job list';
     }
 
+    public function count($data = null){
+        $this->currentUpdate = now('utc');
+        $client = Http::withHeaders(
+        [
+            'Accept'        => 'application/json',
+            'Authorization' => 'Bearer ' . config('lassi.client.token') ,
+            'Lassi-Version' => CheckVersionMiddleware::Version,
+        ])->asForm();
+
+        try {
+            $url = config('lassi.server.url') .  '/lassi/count';
+            $result = $client->post($url
+                                ,[
+                                    'lassidata' => json_encode(  $data),
+                                    'lastsyncdate' => $this->lastUpdated(),
+                                ]
+            );
+
+            if ($result->status() <> 200){
+              
+            }
+        } catch ( \Exception $e) {
+            $msg =  $e->getMessage();
+            Log::error($msg,['trace' => $e->getTrace()]);
+            return $msg;
+        }
+
+           $json = $result->getBody()->getContents();
+
+          return  $json;
+    }
 
 
     public  function sync($data = null){
@@ -103,11 +135,11 @@ class SyncClient extends BaseController
         [
             'Accept'        => 'application/json',
             'Authorization' => 'Bearer ' . config('lassi.client.token') ,
-            'Lassi-Version' => '2.0',
+            'Lassi-Version' => CheckVersionMiddleware::Version,
         ])->asForm();
 
         try {
-            $url = config('lassi.server.url') .  '/lassi/sync/' . urlencode( $this->lastUpdated());
+            $url = config('lassi.server.url') .  '/lassi/sync/';
             $result = $client->post($url
                                 ,[
                                     'lassidata' => json_encode(  $data),
