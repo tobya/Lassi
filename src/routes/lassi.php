@@ -34,5 +34,7 @@ Route::middleware(['auth:sanctum'])->post('lassi/update/{lassiuserid}',[ApiSyncS
 Route::group(['middleware' => ['auth:sanctum']],function(){
 
     Route::post('/lassi/count',[\Lassi\Server\Controllers\ServerController::class, 'count']);
+    Route::post('/lassi/sync',[\Lassi\Server\Controllers\ServerController::class, 'sync']);
+    Route::post('/lassi/sync/user/{lassiuserid}',[\Lassi\Server\Controllers\ServerController::class, 'syncUser']);
 
 });
