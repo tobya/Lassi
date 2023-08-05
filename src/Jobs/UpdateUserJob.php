@@ -112,6 +112,9 @@ class UpdateUserJob implements ShouldQueue
                                 Log::error($msg);
             }
 
+            /**
+             * Fire Events
+             */
             if ($isNewUser){
                 LassiUserCreated::dispatch($lassiuser, $user);
             }
