@@ -13,7 +13,7 @@ Route::middleware(['auth:sanctum'])->get ('lassi/sync/ids/{lastsyncdate}',[ApiSy
 Route::middleware(['auth:sanctum'])->post ('lassi/sync/ids/{lastsyncdate}',[ApiSyncServer::class,'getsyncids']);
 Route::middleware(['auth:sanctum'])->get ('lassi/sync/count/{lastsyncdate}',[ApiSyncServer::class,'count']);
 Route::middleware(['auth:sanctum'])->post ('lassi/sync/count/{lastsyncdate}',[ApiSyncServer::class,'count']);
-Route::middleware(['auth:sanctum'])->post('lassi/sync/{lastsyncdate}/{marker?}',[ApiSyncServer::class,'sync']);
+//Route::middleware(['auth:sanctum'])->post('lassi/sync/{lastsyncdate}/{marker?}',[ApiSyncServer::class,'sync']);
 Route::get('lassi/sync/{lastsyncdate}/{marker?}',[ApiSyncServer::class,'sync']);
 
 
@@ -35,6 +35,8 @@ Route::group(['middleware' => ['auth:sanctum']],function(){
 
     Route::post('/lassi/count',[\Lassi\Server\Controllers\ServerController::class, 'count']);
     Route::post('/lassi/sync',[\Lassi\Server\Controllers\ServerController::class, 'sync']);
+
+    Route::post('/lassi/sync/ids',[\Lassi\Server\Controllers\ServerController::class, 'syncids']);
     Route::post('/lassi/sync/user/{lassiuserid}',[\Lassi\Server\Controllers\ServerController::class, 'syncUser']);
 
 });

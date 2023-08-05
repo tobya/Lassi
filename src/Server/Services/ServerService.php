@@ -2,7 +2,7 @@
 
   namespace Lassi\Server\Services;
   use Illuminate\Routing\Controller;
-  
+
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -35,10 +35,11 @@ use Lassi\Interfaces\LassiRetriever;
 
         $data = request()->input('lassidata',null);
 
-
+        Log::debug($lastsyncdate);
         $startsync = Carbon::parse($lastsyncdate)->setTimeZone(config('app.timezone'));
         $endsync = now()->setTimeZone(config('app.timezone'))->subSecond();
-
+        Log::debug("$startsync,$endsync");
+        Log::debug(date('Ymd H:i:s'));
         if (config('lassi.server.retriever')){
             $classname = config('lassi.server.retriever');
             $retriever = new $classname();
