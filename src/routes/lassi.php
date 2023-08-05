@@ -38,3 +38,6 @@ Route::group(['middleware' => ['auth:sanctum']],function(){
     Route::post('/lassi/sync/user/{lassiuserid}',[\Lassi\Server\Controllers\ServerController::class, 'syncUser']);
 
 });
+// server request client to update
+
+Route::get('/lassi/notify/update/{lassiuserid}',[\Lassi\Client\Controllers\NotifyController::class ,'notifyUserUpdate']);
