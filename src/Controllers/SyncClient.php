@@ -115,7 +115,7 @@ class SyncClient extends BaseController
             );
 
             if ($result->status() <> 200){
-              
+
             }
         } catch ( \Exception $e) {
             $msg =  $e->getMessage();
@@ -139,7 +139,8 @@ class SyncClient extends BaseController
         ])->asForm();
 
         try {
-            $url = config('lassi.server.url') .  '/lassi/sync/';
+            $url = config('lassi.server.url') .  '/lassi/sync';
+            
             $result = $client->post($url
                                 ,[
                                     'lassidata' => json_encode(  $data),

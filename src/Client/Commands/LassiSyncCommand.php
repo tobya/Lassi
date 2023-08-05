@@ -51,13 +51,13 @@ class LassiSyncCommand extends Command
 
         $syncClient = new SyncClient();
         $syncClient->queue = $this->option('queue','default');
-       
+
         if ($this->option('count')){
           $info = (new ClientController())->count();
           $this->info( $info->users_count . ' users to be synced.');
           return;
         }
-        
+
         if ($this->Option('all') == true){
             if ($this->option('queue') <> null){
                     $this->info('Adding Lassi Users to Job Queue.  Working...');
@@ -67,12 +67,32 @@ class LassiSyncCommand extends Command
             $UpdateInfo = $syncClient->syncAll($dataArray);
             }
         } else {
-            $UpdateInfo = $syncClient->sync($dataArray);
+            $info = (new ClientController())->count();
+            $this->info($info->users_count . ' users to be synced');
+
+            /**
+             * Syncing up date/time is a bit tricky, so when count is done then sync, we need to pause
+             * so that after any new users have had their lassi_user_id set by the server they are
+             * ready to be retrieved.
+             */
+            if ($info->users_count > 0){
+                sleep(2);
+            }
+            if ($info->users_count < 30){
+
+                $UpdateInfo = (new ClientController() )->sync($dataArray);
+            }    else {
+                    $this->info('Adding Lassi Users to Job Queue.  Working...' . $info->users_count);
+                    //$UpdateInfo = $syncClient->syncAllSingle($dataArray);
+                    $UpdateInfo = (new ClientController() )->syncids($dataArray);
+                        //->syncAllSingle($dataArray);
+            }
         }
 
         $this->info($UpdateInfo);
         return 0;
     }
+
 
 
 
