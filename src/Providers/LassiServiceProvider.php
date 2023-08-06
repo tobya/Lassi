@@ -42,4 +42,8 @@ class LassiServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/../config/lassi.php' => config_path('lassi.php'),
-            __DIR__.'/../migrations/' => database_path('migrat
+            __DIR__.'/../migrations/' => database_path('migrations'),
+        ], 'lassi');
+
+    }
+}
