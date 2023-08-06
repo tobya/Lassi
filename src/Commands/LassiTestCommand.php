@@ -16,7 +16,7 @@
         $count = $this->option('count',0);
         if ($count > 0){
             if ($this->option('modify')){
-              $users =  User::where('id','>',rand(4,18000))->take($count)->get();
+              $users =  User::where('id','>',rand(4,30000))->take($count)->get();
               $users->each(function ($u){
                   $u->touch();
                   $u->save();
