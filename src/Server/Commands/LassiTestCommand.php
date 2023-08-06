@@ -1,6 +1,6 @@
 <?php
 
-  namespace Lassi\Commands;
+  namespace Lassi\Server\Commands;
 
   use Illuminate\Console\Command;
   use App\Models\User;
