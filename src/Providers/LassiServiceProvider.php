@@ -5,7 +5,8 @@ namespace Lassi\Providers;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Lassi\Commands\LassiTestCommand;
-use Lassi\Commands\SyncLassi;
+use Lassi\Client\Commands\LassiSyncCommand;
+
 
 class LassiServiceProvider extends ServiceProvider
 {
@@ -35,7 +36,7 @@ class LassiServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()){
             $this->commands([
-                SyncLassi::class,
+                LassiSyncCommand::class,
                 LassiTestCommand::class,
             ]);
         }
