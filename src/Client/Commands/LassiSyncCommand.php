@@ -7,7 +7,7 @@ use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
 use Lassi\Client\Controllers\ClientController;
-use Lassi\Controllers\SyncClient;
+
 
 class LassiSyncCommand extends Command
 {
@@ -48,10 +48,6 @@ class LassiSyncCommand extends Command
         // data can be passed in like a query string value1=1&V2=3
         parse_str($this->option('data'),$dataArray);
 
-
-        $syncClient = new SyncClient();
-        $syncClient->queue = $this->option('queue','default');
-
         if ($this->option('count')){
           $info = (new ClientController())->count();
           $this->info( $info->users_count . ' users to be synced.');
@@ -59,15 +55,11 @@ class LassiSyncCommand extends Command
         }
 
         if ($this->Option('all') == true){
-            if ($this->option('queue') <> null){
-                    $this->info('Adding Lassi Users to Job Queue.  Working...');
-                    $UpdateInfo = $syncClient->syncAllSingle($dataArray);
-            } else {
 
-            $UpdateInfo = $syncClient->syncAll($dataArray);
-            }
+            $UpdateInfo = (new ClientController($this))->syncAll($dataArray);
+            
         } else {
-            $info = (new ClientController())->count();
+            $info = (new ClientController($this))->count();
             $this->info($info->users_count . ' users to be synced');
 
             /**
@@ -80,11 +72,11 @@ class LassiSyncCommand extends Command
             }
             if ($info->users_count < 30){
 
-                $UpdateInfo = (new ClientController() )->sync($dataArray);
+                $UpdateInfo = (new ClientController($this))->sync($dataArray);
             }    else {
                     $this->info('Adding Lassi Users to Job Queue.  Working...' . $info->users_count);
                     //$UpdateInfo = $syncClient->syncAllSingle($dataArray);
-                    $UpdateInfo = (new ClientController() )->syncids($dataArray);
+                    $UpdateInfo = (new ClientController($this))->syncids($dataArray);
                         //->syncAllSingle($dataArray);
             }
         }

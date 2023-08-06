@@ -4,7 +4,9 @@
 
   use App\Http\Controllers\Controller;
     use http\Client;
-    use Illuminate\Support\Facades\Cache;
+  use Illuminate\Console\Command;
+  use Illuminate\Support\Carbon;
+  use Illuminate\Support\Facades\Cache;
     use Illuminate\Support\Facades\Http;
     use Illuminate\Http\Request;
     use App\Models\User;
@@ -24,6 +26,12 @@
 
   class ClientController extends Controller
   {
+      public Command $command;
+
+      public function __construct(Command $command = null)
+      {
+          $this->command = $command;
+      }
 
       /**
        *
@@ -44,7 +52,7 @@
        * @return mixed|string|void
        */
         public function count($data = null){
-        
+
 
         $client = $this->LassiClient();
 
@@ -72,10 +80,10 @@
    public  function updateusers($json)
     {
         $data  = json_decode($json);
-        Log::debug($json);
+       // Log::debug($json);
 
       //  dd($userFields);
-        echo "Pushing " . $data->users_count . " user update jobs on to the Queue.";
+        $this->command->info( "Pushing " . $data->users_count . " user update jobs on to the Queue.");
 
         $i = 0;
         collect($data->users)->each(function ($u) use(&$i)  {
@@ -129,7 +137,7 @@
             // must be a string, and cannot contain spaces - garbled by urlencoding.
             $lastupdate = $lastupdate->toW3cString();
         }
-        echo "\n" . $lastupdate;
+        $this->command->info( "Last Update Set: ". $lastupdate);
         Cache::put('lassi.config', ['lastupdate' => $lastupdate]);
 
     }
@@ -141,10 +149,20 @@
     }
 
     public function syncids(){
-            return $this->syncToQueue($this->lastUpdated());
+            return $this->syncToQueue();
     }
 
-    public function syncToQueue($updatefromdate){
+      /**
+       * Sync all users by setting updated to old date.
+       * @return string
+       */
+    public function syncAll(){
+        $this->writeConfig(Carbon::parse('19700101'));
+        return $this->syncToQueue();
+    }
+
+    public function syncToQueue(){
+            $updatefromdate = $this->lastUpdated();
             $this->currentUpdate = now('utc');
         $client = $this->Lassiclient();
 
@@ -175,41 +193,8 @@
             $this->writeConfig($this->currentUpdate);
         return 'Added ' . $UserList->userids_count . ' ids to Job list';
     }
- public function syncAllSingle(){
-
-        $this->currentUpdate = now('utc');
-
-        $client = $this->Lassiclient();
-
-        try {
-
-            $result = $client->post(config('lassi.server.url') .  '/lassi/get/all',[
-                ''
-            ]);
-
-            if ($result->status() <> 200){
-              Log::error('[Lassi:sync] Error Occurred: '. $result->status());
-              abort($result->status(),'Error Returned: ' . $result->status() . ' ' .  $result->getBody()->getContents());
-            }
-
-        } catch ( \Exception $e) {
-            $msg =  $e->getMessage();
-            Log::error($msg,['trace' => $e->getTrace()]);
-            return $msg;
-        }
-
-           $json = $result->getBody()->getContents();
-
-            $UserList = json_decode($json);
-            collect($UserList->userids)->each(function ($lassi_user_id){
-               SyncUserJob::dispatch($lassi_user_id)->onQueue(config('lassi.client.queue'));
-            });
 
 
-
-            $this->writeConfig($this->currentUpdate);
-        return 'Added ' . $UserList->userids_count . ' ids to Job list';
-    }
 
     public function requestUser($lassi_user_id){
 

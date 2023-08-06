@@ -57,6 +57,12 @@ return [
          * ----------------------------------------------------------
          */
         'handler' => Null ,
+
+        /**
+         * Job queue that SyncUser requests should be added to.  Make sure that ny custom queue you add is being 
+         * processed.
+         */
+        'queue' => 'default',
     ],
 
     'version' => '0.5',
