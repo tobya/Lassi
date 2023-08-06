@@ -130,4 +130,7 @@ class GoldenRetriever implements \Lassi\Interfaces\LassiRetriever
 
 By default Lassi will create a user in the client for every user returned.  If you wish to choose if a particular user should be created, then you can implement the Custom Setter Interface `\Lassi\Interfaces\LassiSetter`
 
+## Custom Rete Limiter
+
+v2  If you need to set a rate limit on how many requests are made to the server when undating a large number of jobs simply create a rate limiter called `lassi-updates` and it will be applied.
 
