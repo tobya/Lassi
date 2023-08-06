@@ -10,7 +10,7 @@ interface LassiSetter
 {
 
     /**
-     * Should the client accpet the lassi user
+     * Should the client accept the lassi user
      * return true or false
      * @param $lassiuser
      * @return mixed
