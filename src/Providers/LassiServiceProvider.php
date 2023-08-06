@@ -4,7 +4,7 @@ namespace Lassi\Providers;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
-use Lassi\Commands\LassiTestCommand;
+use Lassi\Server\Commands\LassiTestCommand;
 use Lassi\Client\Commands\LassiSyncCommand;
 
 
