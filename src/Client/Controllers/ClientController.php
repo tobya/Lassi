@@ -26,7 +26,7 @@
 
   class ClientController extends Controller
   {
-      public Command $command;
+      public Command | null $command;
 
       public function __construct(Command $command = null)
       {
@@ -74,6 +74,7 @@
             Log::error($msg,['trace' => $e->getTrace()]);
             return $msg;
         }
+        
 
     }
 
