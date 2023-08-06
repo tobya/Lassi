@@ -49,7 +49,7 @@ class LassiSyncCommand extends Command
         parse_str($this->option('data'),$dataArray);
 
         if ($this->option('count')){
-          $info = (new ClientController())->count();
+          $info = (new ClientController($this))->count();
           $this->info( $info->users_count . ' users to be synced.');
           return;
         }
@@ -57,7 +57,7 @@ class LassiSyncCommand extends Command
         if ($this->Option('all') == true){
 
             $UpdateInfo = (new ClientController($this))->syncAll($dataArray);
-            
+
         } else {
             $info = (new ClientController($this))->count();
             $this->info($info->users_count . ' users to be synced');
