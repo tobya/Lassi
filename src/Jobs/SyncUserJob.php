@@ -23,13 +23,17 @@ use Lassi\Events;
 use Lassi\Events\LassiUserCreated;
 use Lassi\Events\LassiUserUpdated;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Queue\Middleware\RateLimited;
+
 class SyncUserJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $lassiuserid;
 
-    public $tries = 3;
+    public $tries = 10;
     public $backoff = 10;
 
     /**
@@ -43,6 +47,15 @@ class SyncUserJob implements ShouldQueue
     }
 
     /**
+     * Add any required middleware
+     * @return RateLimited[]
+     */
+    public function middleware(){
+        // if Ratelimiter exists apply it.
+        return [new RateLimited('lassi-updates')];
+    }
+
+    /**
      * Execute the job.
      *
      * @return void
@@ -50,7 +63,7 @@ class SyncUserJob implements ShouldQueue
     public function handle()
     {
         $user = app(ClientController::class)->requestUser($this->lassiuserid);
-        
+
         if (!$user){
             return null;
         }
