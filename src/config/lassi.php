@@ -3,13 +3,43 @@
 
 
 return [
-
+    /**
+     *  -------------------------------------------------------------
+     *  SERVER SETTINGS
+     *  -------------------------------------------------------------
+     */
     'server' => [
+
+      /**
+       * -----------------------------------------------------------------
+       * Base url of Lassi Server to connect to.
+       * -----------------------------------------------------------------
+       */
         'url' => env('LASSI_SERVER'),
+
+      /**
+       * -----------------------------------------------------------------
+       * Should the auth system check a token ability to ensure token has correct rights
+       * -----------------------------------------------------------------
+       */
         'token_ability' => env('LASSI_TOKENABILITY', 'lassi_read'),
-        'retriever' =>   Null,
         'check_ability' => env('LASSI_CHECKABILITY',true),
+
+       /**
+       * -----------------------------------------------------------------
+       * If you would like to provide a custom retriever specify it here.
+       * @implements \Lassi\Interfaces\LassiRetriever
+       * -----------------------------------------------------------------
+       */
+        'retriever' =>   Null,
         ],
+
+
+  /**
+   *  -------------------------------------------------------------
+   *  CLIENT SETTINGS
+   *  -------------------------------------------------------------
+   */
     'client' => [
 
         /**
@@ -32,7 +62,7 @@ return [
 
         /**
          * ---------------------------------------------------------
-         * LASSI CONNECTION TOKEN
+         * Laravel Personal Access Token to connect to Server.
          * ---------------------------------------------------------
          */
         'token' => env('LASSI_TOKEN'),
@@ -47,13 +77,13 @@ return [
          * - Ignore the new user
          * - Raise an error.
          */
-        'duplicate_email_action' => 'overwrite' , // [overwrite, ignore, error]
+        'duplicate_email_action' => 'ignore' , // [overwrite, ignore, error]
 
         /**
          * ----------------------------------------------------------
          *  Custom Handler
          * If you would like to use a custom handler to update the recieved user, specify it here.
-         * Handler must implement Lassi\Interfaces\LassiSetter
+         * @implements \Lassi\Interfaces\LassiSetter
          * ----------------------------------------------------------
          */
         'handler' => Null ,
