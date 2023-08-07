@@ -4,9 +4,10 @@
 
   use App\Http\Controllers\Controller;
     use http\Client;
-  use http\Url;
+
   use Illuminate\Console\Command;
   use Illuminate\Support\Carbon;
+  use Illuminate\Support\Facades\App;
   use Illuminate\Support\Facades\Cache;
     use Illuminate\Support\Facades\Http;
     use Illuminate\Http\Request;
@@ -27,7 +28,7 @@
 
   class ClientController extends Controller
   {
-      public Command | null $command;
+      public Command $command;
 
       public function __construct(Command $command = null)
       {
@@ -45,7 +46,7 @@
             'Accept'        => 'application/json',
             'Authorization' => 'Bearer ' . config('lassi.client.token') ,
             'Lassi-Version' => CheckVersionMiddleware::Version,
-            'Lassi-Client' =>  URL::to('/') ,
+            'Lassi-Referer' =>  App::make('url')->to('/') ,
         ])->asForm();
     }
 
@@ -58,7 +59,7 @@
 
         $client = $this->LassiClient();
 
-       // try {
+        try {
             $url = config('lassi.server.url') .  '/lassi/count';
             $result = $client->post($url  ,[
                                             'lassidata' => json_encode(  $data),
@@ -70,22 +71,12 @@
 
                 $json = $result->getBody()->getContents();
                 return  json_decode($json);
-            } else if ($result->status() == 401){ // authentication
-
-                throw new \Exception('Unauthenticated - Contact server for Personal Access Token');
-                return ['status' => $result->status(), 'message' => 'Unauthenticated'];
             }
-            else  {
-                echo $result->status();
-                return ['status' => $result->status(), 'message' => 'error'];
-
-            }
-      //} catch ( \Exception $e) {
-      //  //  $msg =  $e->getMessage();
-      //  //  Log::error($msg,['trace' => $e->getTrace()]);
-      //    return $msg;
-      //}
-
+        } catch ( \Exception $e) {
+            $msg =  $e->getMessage();
+            Log::error($msg,['trace' => $e->getTrace()]);
+            return $msg;
+        }
 
     }
 
@@ -116,7 +107,7 @@
        $this->currentUpdate = now('utc');
         $client = $this->LassiClient();
 
-      //  try {
+        try {
             $url = config('lassi.server.url') .  '/lassi/sync/';
             $result = $client->post($url
                                 ,[
@@ -127,15 +118,14 @@
             if ($result->status() <> 200){
               Log::error('[Lassi:sync] Error Occurred: '. $result->status());
               Log::info('[Lassi:sync] ' . $url  );
-               throw new \Exception('Error:' . $result->status());
               abort($result->status(),'Error Returned: ' . $result->status() . ' ' .  $result->getBody()->getContents());
             }
 
-     //   } catch ( \Exception $e) {
-     //       $msg =  $e->getMessage();
-     //       Log::error($msg,['trace' => $e->getTrace()]);
-     //       return $msg;
-     //   }
+        } catch ( \Exception $e) {
+            $msg =  $e->getMessage();
+            Log::error($msg,['trace' => $e->getTrace()]);
+            return $msg;
+        }
 
            $json = $result->getBody()->getContents();
 
@@ -230,7 +220,7 @@
 
            $json = $result->getBody()->getContents();
 
-            $result = json_decode($result);
+            $result = json_decode($json);
 
           //  Log::debug(json_last_error_msg() . json_last_error());
             if ($result->users_count == 1){
