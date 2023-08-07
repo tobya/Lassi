@@ -70,7 +70,7 @@
                 return  json_decode($json);
             } else if ($result->status() == 401){ // authentication
 
-                throw new \Exception('Unauthenticated');
+                throw new \Exception('Unauthenticated - Contact server for Personal Access Token');
                 return ['status' => $result->status(), 'message' => 'Unauthenticated'];
             }
             else  {
@@ -114,7 +114,7 @@
        $this->currentUpdate = now('utc');
         $client = $this->LassiClient();
 
-        try {
+      //  try {
             $url = config('lassi.server.url') .  '/lassi/sync/';
             $result = $client->post($url
                                 ,[
@@ -125,14 +125,15 @@
             if ($result->status() <> 200){
               Log::error('[Lassi:sync] Error Occurred: '. $result->status());
               Log::info('[Lassi:sync] ' . $url  );
+               throw new \Exception('Error:' . $result->status());
               abort($result->status(),'Error Returned: ' . $result->status() . ' ' .  $result->getBody()->getContents());
             }
 
-        } catch ( \Exception $e) {
-            $msg =  $e->getMessage();
-            Log::error($msg,['trace' => $e->getTrace()]);
-            return $msg;
-        }
+     //   } catch ( \Exception $e) {
+     //       $msg =  $e->getMessage();
+     //       Log::error($msg,['trace' => $e->getTrace()]);
+     //       return $msg;
+     //   }
 
            $json = $result->getBody()->getContents();
 
