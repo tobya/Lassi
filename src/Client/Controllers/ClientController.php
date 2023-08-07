@@ -4,6 +4,7 @@
 
   use App\Http\Controllers\Controller;
     use http\Client;
+  use http\Url;
   use Illuminate\Console\Command;
   use Illuminate\Support\Carbon;
   use Illuminate\Support\Facades\Cache;
@@ -44,6 +45,7 @@
             'Accept'        => 'application/json',
             'Authorization' => 'Bearer ' . config('lassi.client.token') ,
             'Lassi-Version' => CheckVersionMiddleware::Version,
+            'Lassi-Client' =>  URL::to('/') ,
         ])->asForm();
     }
 
