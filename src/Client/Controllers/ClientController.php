@@ -56,7 +56,7 @@
 
         $client = $this->LassiClient();
 
-        try {
+       // try {
             $url = config('lassi.server.url') .  '/lassi/count';
             $result = $client->post($url  ,[
                                             'lassidata' => json_encode(  $data),
@@ -68,13 +68,22 @@
 
                 $json = $result->getBody()->getContents();
                 return  json_decode($json);
+            } else if ($result->status() == 401){ // authentication
+
+                throw new \Exception('Unauthenticated');
+                return ['status' => $result->status(), 'message' => 'Unauthenticated'];
             }
-        } catch ( \Exception $e) {
-            $msg =  $e->getMessage();
-            Log::error($msg,['trace' => $e->getTrace()]);
-            return $msg;
-        }
-        
+            else  {
+                echo $result->status();
+                return ['status' => $result->status(), 'message' => 'error'];
+
+            }
+      //} catch ( \Exception $e) {
+      //  //  $msg =  $e->getMessage();
+      //  //  Log::error($msg,['trace' => $e->getTrace()]);
+      //    return $msg;
+      //}
+
 
     }
 

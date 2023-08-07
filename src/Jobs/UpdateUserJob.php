@@ -108,7 +108,7 @@ class UpdateUserJob implements ShouldQueue
                 $user->save();
                 $this->UpdateExtra($lassiuser, $user);
             } catch ( \Exception $e) {
-                                $msg = "[Lassi] Error Happened: " . $e->getMessage() . '. Unable to create user - ' . json_encode($lassiuser);
+                                $msg = "[Lassi] Error Happened: " . $e->getMessage() . '. Unable to save and update user - ' . json_encode($lassiuser);
                                 Log::error($msg);
             }
 
