@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use http\Client;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
-use App\Models\User;
+
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\DB;
 use Lassi\Events;
 use Lassi\Events\LassiUserCreated;
 use Lassi\Events\LassiUserUpdated;
+use Lassi\Interfaces\LassiMapper;
+use Lassi\Interfaces\LassiRetriever;
+use Lassi\Interfaces\LassiSetter;
 
 class UpdateUserJob implements ShouldQueue
 {
@@ -37,6 +40,7 @@ class UpdateUserJob implements ShouldQueue
     protected $lassiuser;
 
     protected $userFields;
+    protected $UserModel;
     /**
      * Create a new job instance
      * @return void
@@ -44,6 +48,7 @@ class UpdateUserJob implements ShouldQueue
     public function __construct($lassiuser)
     {
         $this->lassiuser = $lassiuser;
+        $this->UserModel = config('lassi.client.usermodel');
 
     }
 
@@ -54,23 +59,23 @@ class UpdateUserJob implements ShouldQueue
      */
     public function handle()
     {
-            $u = $this->lassiuser;
-             
+            $lassiuser = $this->lassiuser;
+
 
             // First check if we should deal with this user at all.
-            if (!$this->shouldHandle($u)){
+            if (!$this->shouldHandle($lassiuser)){
                 return;
             }
 
-            $user = $this->FindorCreateUser($u->lassi_user_id);
-            Log::Debug('Retrieved : ' . $user->name);
+            $user = $this->FindorCreateUser($lassiuser->lassi_user_id);
+            Log::Debug('Retrieved : ' . $user->lassi_user_id);
 
             if (config('lassi.client.duplicate_email_action') == 'overwrite'){
 
                 // if user does not match lassi_user_id and we wish to overwrite then
                 // check if a user can be found matching email.
                 if (!$user->exists) {
-                    $emaildup = User::where('email',$u->email)->first();
+                    $emaildup = $this->UserModel::where('email',$lassiuser->email)->first();
                     if ($emaildup){
                         // set existing user
                         $user = $emaildup;
@@ -81,42 +86,48 @@ class UpdateUserJob implements ShouldQueue
             $userFields = DB::getSchemaBuilder()->getColumnListing('users');
             // Loop through all fields on user table on client. Ignore specified fields and update
             // fields that exist in both client and incoming data.
-            collect($userFields)->each(function ( $fieldname) use($user, $u){
+            collect($userFields)->each(function ( $fieldname) use($user, $lassiuser){
 
                 // Only attempt to set fields that are not guarded.
                if (! collect($this->guard)->contains( $fieldname)){
                    if ($fieldname == 'password'){
-                        $user->password = $u->lassipassword;
+                        $user->password = $lassiuser->lassipassword;
                    } else {
                        // If field exists on client user model set it.
-                       if (isset($u->{$fieldname})){
-                        $user->{$fieldname} =$u->{$fieldname};
+                       if (isset($lassiuser->{$fieldname})){
+                        $user->{$fieldname} =$lassiuser->{$fieldname};
                        }
                    }
                }
             });
+            Log::Debug('Updated : ' . $user->name);
+
 
             $isNewUser = !$user->exists;
             try {
                 $user->save();
+                $this->UpdateExtra($lassiuser, $user);
             } catch ( \Exception $e) {
-                                $msg = "[Lassi] Error Happened: " . $e->getMessage() . '. Unable to create user - ' . json_encode($u);
+                                $msg = "[Lassi] Error Happened: " . $e->getMessage() . '. Unable to save and update user - ' . json_encode($lassiuser);
                                 Log::error($msg);
             }
 
+            /**
+             * Fire Events
+             */
             if ($isNewUser){
-                LassiUserCreated::dispatch($u, $user);
+                LassiUserCreated::dispatch($lassiuser, $user);
             }
             // updated always fires
-            LassiUserUpdated::dispatch($u, $user);
+            LassiUserUpdated::dispatch($lassiuser, $user);
 
 
     }
 
     public  function FindOrCreateUser($uuid){
-        $user = User::Where('lassi_user_id','=',$uuid)->first();
+        $user = $this->UserModel::Where('lassi_user_id','=',$uuid)->first();
         if (!$user){
-            $user = new User();
+            $user = new $this->UserModel();
             $user->lassi_user_id = $uuid;
         }
         return $user;
@@ -124,11 +135,37 @@ class UpdateUserJob implements ShouldQueue
     }
 
     public function shouldHandle($user){
+
         if (config('lassi.client.handler')){
             $classname = config('lassi.client.handler');
             $handler = new $classname();
-            return $handler->Accept($user);
+            if ($handler instanceof LassiRetriever){
+                return $handler->Accept($user);
+            }
         }
         return true;
     }
+
+    /**
+     * @param $lassiuser
+     * @param $user
+     * @return $user
+     */
+    public function UpdateExtra($lassiuser, $user) {
+        if (config('lassi.client.handler')){
+            $classname = config('lassi.client.handler');
+            $handler = new $classname();
+            if ($handler instanceof LassiSetter){
+              $returneduser = $handler->Update($lassiuser, $user);
+              if (is_null($returneduser)){
+                  throw new \Exception('LassiMapper::map() Implementation does not return USER object ');
+              }
+              return $returneduser;
+            }
+
+        }
+        return $user;
+    }
+
+
 }
